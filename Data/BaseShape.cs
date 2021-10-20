@@ -1,21 +1,36 @@
-﻿using ShapesEditor.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ShapesEditor.Drawing
+namespace ShapesEditor.Data
 {
-    public static class DrawShape
+    public abstract class BaseShape : IShape
     {
+        public bool isSelected { protected get; set; }
+        public static Graphics _graphics { get; set; }
         public static Bitmap _bitmap { get; set; }
-        public static void DrawLine(Point first_point, Point second_point)
+        public abstract void Draw();
+        public abstract void UpdateShape(Point point);
+        public abstract bool checkIfClicked(Point point);
+
+        public void Select()
+        {
+            isSelected = true;
+            Draw();
+        }
+        public void UnSelect()
+        {
+            isSelected = false;
+            Draw();
+        }
+
+        protected void DrawLine(Point first_point, Point second_point, Color color)
         {
             int d, dx, dy, a, b, xFactor, yFactor;
             int x = first_point.X, y = first_point.Y;
-            Color color = Color.Black;
 
             // wybieramy poziomy kierunek rysowania
             if (first_point.X < second_point.X)
@@ -40,7 +55,7 @@ namespace ShapesEditor.Drawing
                 dy = first_point.Y - second_point.Y;
             }
             _bitmap.SetPixel(x, y, color);
-            
+
             // sprawdzamy czy odcinek jest "bardziej" pionowy czy poziomy
             if (dx > dy)
             {
@@ -88,24 +103,10 @@ namespace ShapesEditor.Drawing
             }
         }
 
-        public static void DrawVertice(Point point)
+        protected void DrawVertice(Point point)
         {
-
-        }
-
-        public static void Draw(Polygon polygon)
-        {
-            var points = polygon.GetVertices();
-            for (int i = 0; i < points.Count - 1; i++)
-            {
-                DrawLine(points[i], points[i + 1]);
-            }
-            DrawLine(points[points.Count - 1], points[0]);
-        }
-
-        public static void Draw(Circle circle)
-        {
-
+            int radius = 5;
+            _graphics.FillEllipse(new SolidBrush(Color.Orange), point.X - radius, point.Y - radius, radius * 2, radius * 2);
         }
     }
 }

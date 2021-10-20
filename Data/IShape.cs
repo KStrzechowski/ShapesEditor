@@ -7,9 +7,12 @@ using System.Threading.Tasks;
 
 namespace ShapesEditor.Data
 {
-    interface IShape
+    public interface IShape
     {
-        public void Draw();
         public void UpdateShape(Point point);
+        public void Draw();
+        public void Select();
+        public void UnSelect();
+        public bool checkIfClicked(Point point);
     }
 }

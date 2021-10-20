@@ -9,20 +9,15 @@ namespace ShapesEditor.Data
 {
     public class Polygon : BaseShape
     {
-        private readonly List<Point> _vertices;
+        private readonly List<Vertice> _vertices;
         public Polygon()
         {
-            _vertices = new List<Point>();
-        }
-        public Polygon(List<Point> vertices)
-        {
-            _vertices = vertices;
+            _vertices = new List<Vertice>();
         }
 
-        public override void UpdateShape(Point point)
+        public override void UpdateShape(Vertice vertice)
         {
-            _vertices.Add(point);
-            Draw();
+            _vertices.Add(vertice);
         }
 
         public override void Draw()
@@ -38,11 +33,11 @@ namespace ShapesEditor.Data
 
             for (int i = 0; i < points.Count - 1; i++)
             {
-                DrawLine(points[i], points[i + 1], color);
-                DrawVertice(points[i]);
+                DrawLine(points[i].GetPosition(), points[i + 1].GetPosition(), color);
+                DrawVertice(points[i].GetPosition());
             }
-            DrawLine(points[points.Count - 1], points[0], color);
-            DrawVertice(points[points.Count - 1]);
+            DrawLine(points[points.Count - 1].GetPosition(), points[0].GetPosition(), color);
+            DrawVertice(points[points.Count - 1].GetPosition());
         }
 
         public override bool checkIfClicked(Point point)
@@ -51,10 +46,12 @@ namespace ShapesEditor.Data
             int j = _vertices.Count() - 1;
             for (int i = 0; i < _vertices.Count(); i++)
             {
-                if (_vertices[i].Y < point.Y && _vertices[j].Y >= point.Y 
-                    || _vertices[j].Y < point.Y && _vertices[i].Y >= point.Y)
+                if (_vertices[i].GetPosition().Y < point.Y && _vertices[j].GetPosition().Y >= point.Y 
+                    || _vertices[j].GetPosition().Y < point.Y && _vertices[i].GetPosition().Y >= point.Y)
                 {
-                    if (_vertices[i].X + (point.Y - (float)_vertices[i].Y) / ((float)_vertices[j].Y - _vertices[i].Y) * (_vertices[j].X - _vertices[i].X) 
+                    if (_vertices[i].GetPosition().X + (point.Y - 
+                        (float)_vertices[i].GetPosition().Y) / ((float)_vertices[j].GetPosition().Y - 
+                        _vertices[i].GetPosition().Y) * (_vertices[j].GetPosition().X - _vertices[i].GetPosition().X) 
                         < point.X)
                     {
                         result = !result;
@@ -63,6 +60,11 @@ namespace ShapesEditor.Data
                 j = i;
             }
             return result;
+        }
+
+        public override Vertice SelectVertice()
+        {
+            return _vertices.Last();
         }
     }
 }

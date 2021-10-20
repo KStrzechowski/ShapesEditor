@@ -16,6 +16,7 @@ namespace ShapesEditor
         private readonly List<IShape> _shapes = new();
         private IShape _newShape;
         private IShape _selectedShape;
+        private Vertice _selectedVertice;
         private Point _position;
         public MainForm()
         {
@@ -29,12 +30,14 @@ namespace ShapesEditor
         private void mainPictureBox_MouseClick(object sender, MouseEventArgs e)
         {
             _position = new Point(e.X, e.Y);
+            ChangePositionTextBoxes();
             if (_newShape != null)
             {
+                _selectedVertice = new Vertice(_position);
+                _newShape.UpdateShape(_selectedVertice);
                 DrawAllShapes();
-                _newShape.UpdateShape(_position);
             }
-            else
+            else 
             {
                 SelectShape(_position);
             }
@@ -42,18 +45,15 @@ namespace ShapesEditor
 
         private void mainListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            UnSelectAll();
-            if (_newShape != null)
-            {
-                _shapes.Remove(_newShape);
-            }
+            UnSelectShape();
             if (mainListBox.SelectedIndex == 0)
             {
                 _newShape = new Polygon();
             }
             else if (mainListBox.SelectedIndex == 1)
             {
-                _newShape = new Circle();
+                _selectedVertice = new Vertice(new Point(100, 100));
+                _newShape = new Circle(_selectedVertice, 50);
             }
             if (_newShape != null)
             {
@@ -69,8 +69,42 @@ namespace ShapesEditor
                 _shapes.Add(_newShape);
                 DrawAllShapes();
             }
-            _newShape = null;
-            mainListBox.SelectedIndex = -1;
+            UnSelectShape();
+        }
+
+        private void deleteButton_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (_selectedShape != null)
+            {
+                _shapes.Remove(_selectedShape);
+                UnSelectShape();
+            }
+        }
+
+        private void textBox_NumberValidation(object sender, CancelEventArgs e)
+        {
+            
+        }
+
+        private void positionTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                _position.X = int.Parse(positionXTextBox.Text);
+                _position.Y = int.Parse(positionYTextBox.Text);
+                _selectedVertice.SetPosition(_position);
+                DrawAllShapes();
+            }
+        }
+
+        private void radiusTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter && _selectedShape.GetType() == typeof(Circle))
+            {
+                var circle = (Circle)_selectedShape;
+                circle.ChangeRadius(int.Parse(radiusTextBox.Text));
+                DrawAllShapes();
+            }
         }
     }
 }

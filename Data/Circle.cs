@@ -9,27 +9,21 @@ namespace ShapesEditor.Data
 {
     public class Circle : BaseShape
     {
-        private Point _center;
+        private Vertice _center;
         private int _radius;
-        public Circle()
-        {
-            _center = new Point(100, 100);
-            _radius = 50;
-        }
-        public Circle(Point center, int radius)
+        public Circle(Vertice center, int radius)
         {
             _center = center;
             _radius = radius;
         }
-        public override void UpdateShape(Point point)
+        public override void UpdateShape(Vertice vertice)
         {
-            _center = point;
-            Draw();
+            _center = vertice;
         }
 
         public override void Draw()
         {
-            Point center = _center;
+            Point center = _center.GetPosition();
             int radius = _radius; 
             Color color;
             if (isSelected)
@@ -43,7 +37,7 @@ namespace ShapesEditor.Data
 
         public override bool checkIfClicked(Point point)
         {
-            if ((Math.Pow(_center.X - point.X, 2) + Math.Pow(_center.Y - point.Y, 2))
+            if ((Math.Pow(_center.GetPosition().X - point.X, 2) + Math.Pow(_center.GetPosition().Y - point.Y, 2))
                 < Math.Pow(_radius, 2))
             {
                 return true;
@@ -54,5 +48,14 @@ namespace ShapesEditor.Data
             }
         }
 
+        public override Vertice SelectVertice()
+        {
+            return _center;
+        }
+
+        public void ChangeRadius(int radius)
+        {
+            _radius = radius;
+        }
     }
 }

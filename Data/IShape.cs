@@ -9,10 +9,11 @@ namespace ShapesEditor.Data
 {
     public interface IShape
     {
-        public void UpdateShape(Point point);
+        public void UpdateShape(Vertice vertice);
         public void Draw();
         public void Select();
         public void UnSelect();
         public bool checkIfClicked(Point point);
+        public Vertice SelectVertice();
     }
 }

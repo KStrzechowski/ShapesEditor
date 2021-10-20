@@ -10,11 +10,13 @@ namespace ShapesEditor.Data
     public abstract class BaseShape : IShape
     {
         public bool isSelected { protected get; set; }
+        public Vertice selectedVertice;
         public static Graphics _graphics { get; set; }
         public static Bitmap _bitmap { get; set; }
         public abstract void Draw();
-        public abstract void UpdateShape(Point point);
+        public abstract void UpdateShape(Vertice vertice);
         public abstract bool checkIfClicked(Point point);
+        public abstract Vertice SelectVertice();
 
         public void Select()
         {

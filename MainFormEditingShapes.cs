@@ -23,6 +23,8 @@ namespace ShapesEditor
         private void DrawAllShapes()
         {
             SetBitmap();
+            if (_selectedShape != null)
+                _selectedShape.Draw();
             foreach (var shape in _shapes)
             {
                 shape.Draw();
@@ -31,7 +33,7 @@ namespace ShapesEditor
 
         private void SelectShape(Point point)
         {
-            UnSelectAll();
+            UnSelectShape();
             foreach (var shape in _shapes)
             {
                 if (shape.checkIfClicked(point))
@@ -43,13 +45,25 @@ namespace ShapesEditor
             }
         }
 
-        private void UnSelectAll()
+        private void UnSelectShape()
         {
-            foreach (var shape in _shapes)
+            if (_selectedShape != null)
             {
-                shape.UnSelect();
+                _selectedShape.UnSelect();
+                _selectedShape = null;
+                _selectedVertice = null;
+                _newShape = null;
+                mainListBox.SelectedIndex = -1;
             }
             DrawAllShapes();
         }
+
+        private void ChangePositionTextBoxes()
+        {
+            positionXTextBox.Text = _position.X.ToString();
+            positionYTextBox.Text = _position.Y.ToString();
+        }
+
+
     }
 }

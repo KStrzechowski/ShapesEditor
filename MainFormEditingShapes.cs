@@ -36,7 +36,7 @@ namespace ShapesEditor
             UnSelectShape();
             foreach (var shape in _shapes)
             {
-                if (shape.checkIfClicked(point))
+                if (shape.CheckIfClicked(point))
                 {
                     shape.Select();
                     _selectedShape = shape;
@@ -51,11 +51,20 @@ namespace ShapesEditor
             {
                 _selectedShape.UnSelect();
                 _selectedShape = null;
-                _selectedVertice = null;
                 _newShape = null;
+                _shapeMoving = false;
                 mainListBox.SelectedIndex = -1;
+                UnSelectVertice();
+                
+                HideAllOptions();
             }
             DrawAllShapes();
+        }
+
+        private void UnSelectVertice()
+        {
+            _selectedVertice = null;
+            _verticeMoving = false;
         }
 
         private void ChangePositionTextBoxes()
@@ -64,6 +73,41 @@ namespace ShapesEditor
             positionYTextBox.Text = _position.Y.ToString();
         }
 
+        private void SetOptionsForCorrectShape()
+        {
+            HideAllOptions();
+            if (_selectedShape != null)
+            {
+                if (CheckIfPolygon(_selectedShape))
+                {
+                    SelectedPolygon();
+                }
+                else if (CheckIfCircle(_selectedShape))
+                {
+                    SelectedCircle();
+                }
+                addButton.Visible = deleteButton.Visible = true;
+            }
+        }
 
+        private void SelectedCircle()
+        {
+            radiusLabel.Visible = radiusTextBox.Visible = true;
+            positionXTextBox.Visible = positionYTextBox.Visible = positionLabel.Visible = true;
+        }
+
+        private void SelectedPolygon()
+        {
+        }
+
+        private void HideAllOptions()
+        {
+            radiusLabel.Visible = radiusTextBox.Visible = false;
+            positionXTextBox.Visible = positionYTextBox.Visible = positionLabel.Visible = false;
+            addButton.Visible = deleteButton.Visible = false;
+        }
+
+        private bool CheckIfCircle(IShape shape) => shape.GetType() == typeof(Circle);
+        private bool CheckIfPolygon(IShape shape) => shape.GetType() == typeof(Polygon);
     }
 }

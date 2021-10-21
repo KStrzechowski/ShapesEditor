@@ -40,7 +40,7 @@ namespace ShapesEditor.Data
             DrawVertice(points[points.Count - 1].GetPosition());
         }
 
-        public override bool checkIfClicked(Point point)
+        public override bool CheckIfClicked(Point point)
         {
             bool result = false;
             int j = _vertices.Count() - 1;
@@ -62,9 +62,33 @@ namespace ShapesEditor.Data
             return result;
         }
 
-        public override Vertice SelectVertice()
+        public  Vertice SelectVertice()
         {
             return _vertices.Last();
+        }
+
+        public bool CheckIfClickedVertice(Point point, out Vertice clickedVertice)
+        {
+            clickedVertice = null;
+            foreach (var vertice in _vertices)
+            {
+                if (vertice.CheckIfClicked(point))
+                {
+                    clickedVertice = vertice;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public override void Move(Point startingPoint, Point endingPoint)
+        {
+            foreach (var vertice in _vertices)
+            {
+                var position = new Point(endingPoint.X + (vertice.GetPosition().X - startingPoint.X),
+                endingPoint.Y + (vertice.GetPosition().Y - startingPoint.Y));
+                vertice.SetPosition(position);
+            }
         }
     }
 }

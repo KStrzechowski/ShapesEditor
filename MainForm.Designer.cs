@@ -37,7 +37,7 @@ namespace ShapesEditor
             this.addButton = new System.Windows.Forms.Button();
             this.radiusTextBox = new System.Windows.Forms.TextBox();
             this.radiusLabel = new System.Windows.Forms.Label();
-            this.pointLabel = new System.Windows.Forms.Label();
+            this.positionLabel = new System.Windows.Forms.Label();
             this.positionXTextBox = new System.Windows.Forms.TextBox();
             this.positionYTextBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.mainPictureBox)).BeginInit();
@@ -58,7 +58,9 @@ namespace ShapesEditor
             this.mainPictureBox.Size = new System.Drawing.Size(898, 609);
             this.mainPictureBox.TabIndex = 0;
             this.mainPictureBox.TabStop = false;
-            this.mainPictureBox.MouseClick += new System.Windows.Forms.MouseEventHandler(this.mainPictureBox_MouseClick);
+            this.mainPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.mainPictureBox_MouseDown);
+            this.mainPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.mainPictureBox_MouseMove);
+            this.mainPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.mainPictureBox_MouseUp);
             // 
             // mainTableLayoutPanel
             // 
@@ -108,7 +110,7 @@ namespace ShapesEditor
             this.optionsTableLayoutPanel.Controls.Add(this.addButton, 1, 3);
             this.optionsTableLayoutPanel.Controls.Add(this.radiusTextBox, 1, 1);
             this.optionsTableLayoutPanel.Controls.Add(this.radiusLabel, 0, 1);
-            this.optionsTableLayoutPanel.Controls.Add(this.pointLabel, 0, 0);
+            this.optionsTableLayoutPanel.Controls.Add(this.positionLabel, 0, 0);
             this.optionsTableLayoutPanel.Controls.Add(this.positionXTextBox, 1, 0);
             this.optionsTableLayoutPanel.Controls.Add(this.positionYTextBox, 2, 0);
             this.optionsTableLayoutPanel.Location = new System.Drawing.Point(3, 278);
@@ -130,6 +132,7 @@ namespace ShapesEditor
             this.deleteButton.TabIndex = 4;
             this.deleteButton.Text = "Delete";
             this.deleteButton.UseVisualStyleBackColor = true;
+            this.deleteButton.Visible = false;
             this.deleteButton.MouseClick += new System.Windows.Forms.MouseEventHandler(this.deleteButton_MouseClick);
             // 
             // addButton
@@ -142,6 +145,7 @@ namespace ShapesEditor
             this.addButton.TabIndex = 3;
             this.addButton.Text = "Add";
             this.addButton.UseVisualStyleBackColor = true;
+            this.addButton.Visible = false;
             this.addButton.MouseClick += new System.Windows.Forms.MouseEventHandler(this.addButton_MouseClick);
             // 
             // radiusTextBox
@@ -157,6 +161,7 @@ namespace ShapesEditor
             this.radiusTextBox.Size = new System.Drawing.Size(105, 27);
             this.radiusTextBox.TabIndex = 6;
             this.radiusTextBox.Text = "50";
+            this.radiusTextBox.Visible = false;
             this.radiusTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.radiusTextBox_KeyDown);
             this.radiusTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.textBox_NumberValidation);
             // 
@@ -173,21 +178,23 @@ namespace ShapesEditor
             this.radiusLabel.TabIndex = 5;
             this.radiusLabel.Text = "Radius";
             this.radiusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.radiusLabel.Visible = false;
             // 
-            // pointLabel
+            // positionLabel
             // 
-            this.pointLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.positionLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pointLabel.AutoSize = true;
-            this.pointLabel.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.pointLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.pointLabel.Location = new System.Drawing.Point(3, 0);
-            this.pointLabel.Name = "pointLabel";
-            this.pointLabel.Size = new System.Drawing.Size(108, 37);
-            this.pointLabel.TabIndex = 7;
-            this.pointLabel.Text = "Position";
-            this.pointLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.positionLabel.AutoSize = true;
+            this.positionLabel.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.positionLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.positionLabel.Location = new System.Drawing.Point(3, 0);
+            this.positionLabel.Name = "positionLabel";
+            this.positionLabel.Size = new System.Drawing.Size(108, 37);
+            this.positionLabel.TabIndex = 7;
+            this.positionLabel.Text = "Position";
+            this.positionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.positionLabel.Visible = false;
             // 
             // positionXTextBox
             // 
@@ -200,6 +207,7 @@ namespace ShapesEditor
             this.positionXTextBox.Size = new System.Drawing.Size(51, 27);
             this.positionXTextBox.TabIndex = 8;
             this.positionXTextBox.Text = "0";
+            this.positionXTextBox.Visible = false;
             this.positionXTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.positionTextBox_KeyDown);
             this.positionXTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.textBox_NumberValidation);
             // 
@@ -215,6 +223,7 @@ namespace ShapesEditor
             this.positionYTextBox.Size = new System.Drawing.Size(48, 27);
             this.positionYTextBox.TabIndex = 9;
             this.positionYTextBox.Text = "0";
+            this.positionYTextBox.Visible = false;
             this.positionYTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.positionTextBox_KeyDown);
             this.positionYTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.textBox_NumberValidation);
             // 
@@ -248,7 +257,7 @@ namespace ShapesEditor
         private System.Windows.Forms.Button addButton;
         private System.Windows.Forms.TextBox radiusTextBox;
         private System.Windows.Forms.Label radiusLabel;
-        private System.Windows.Forms.Label pointLabel;
+        private System.Windows.Forms.Label positionLabel;
         private System.Windows.Forms.TextBox positionXTextBox;
         private System.Windows.Forms.TextBox positionYTextBox;
     }

@@ -13,7 +13,7 @@ namespace ShapesEditor.Data
         public void Draw();
         public void Select();
         public void UnSelect();
-        public bool checkIfClicked(Point point);
-        public Vertice SelectVertice();
+        public bool CheckIfClicked(Point point);
+        public void Move(Point startingPoint, Point endingPoint);
     }
 }

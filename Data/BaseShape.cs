@@ -15,8 +15,8 @@ namespace ShapesEditor.Data
         public static Bitmap _bitmap { get; set; }
         public abstract void Draw();
         public abstract void UpdateShape(Vertice vertice);
-        public abstract bool checkIfClicked(Point point);
-        public abstract Vertice SelectVertice();
+        public abstract bool CheckIfClicked(Point point);
+        public abstract void Move(Point startingPoint, Point endingPoint);
 
         public void Select()
         {

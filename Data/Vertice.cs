@@ -17,5 +17,23 @@ namespace ShapesEditor.Data
 
         public void SetPosition(Point point) => _position = point;
         public Point GetPosition() => _position;
+        public bool CheckIfClicked(Point point)
+        {
+            if ((Math.Pow(GetPosition().X - point.X, 2) + Math.Pow(GetPosition().Y - point.Y, 2)) < 50)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public void Move(Point startingPoint, Point endingPoint)
+        {
+            var position = new Point(endingPoint.X + (GetPosition().X - startingPoint.X),
+                endingPoint.Y + (GetPosition().Y - startingPoint.Y));
+            SetPosition(position);
+        }
     }
 }

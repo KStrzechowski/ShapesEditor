@@ -35,7 +35,7 @@ namespace ShapesEditor.Data
             DrawVertice(center);
         }
 
-        public override bool checkIfClicked(Point point)
+        public override bool CheckIfClicked(Point point)
         {
             if ((Math.Pow(_center.GetPosition().X - point.X, 2) + Math.Pow(_center.GetPosition().Y - point.Y, 2))
                 < Math.Pow(_radius, 2))
@@ -48,14 +48,16 @@ namespace ShapesEditor.Data
             }
         }
 
-        public override Vertice SelectVertice()
-        {
-            return _center;
-        }
-
         public void ChangeRadius(int radius)
         {
             _radius = radius;
+        }
+
+        public override void Move(Point startingPoint, Point endingPoint)
+        {
+            var position = new Point(endingPoint.X + (_center.GetPosition().X - startingPoint.X),
+                endingPoint.Y + (_center.GetPosition().Y - startingPoint.Y));
+            _center.SetPosition(position);
         }
     }
 }

@@ -45,6 +45,13 @@ namespace ShapesEditor
             }
         }
 
+        private void SelectVertice(Vertice vertice)
+        {
+            _selectedVertice = vertice;
+            _selectedVertice.Select();
+            _verticeMoving = true;
+        }
+
         private void UnSelectShape()
         {
             if (_selectedShape != null)
@@ -54,8 +61,11 @@ namespace ShapesEditor
                 _newShape = null;
                 _shapeMoving = false;
                 mainListBox.SelectedIndex = -1;
-                UnSelectVertice();
-                
+                if (_selectedVertice != null)
+                {
+                    UnSelectVertice();
+                }
+
                 HideAllOptions();
             }
             DrawAllShapes();
@@ -63,6 +73,7 @@ namespace ShapesEditor
 
         private void UnSelectVertice()
         {
+            _selectedVertice.UnSelect();
             _selectedVertice = null;
             _verticeMoving = false;
         }
@@ -98,6 +109,15 @@ namespace ShapesEditor
 
         private void SelectedPolygon()
         {
+            if (_selectedVertice != null)
+            {
+                SelectedVertice();
+            }
+        }
+
+        private void SelectedVertice()
+        {
+            positionXTextBox.Visible = positionYTextBox.Visible = positionLabel.Visible = true;
         }
 
         private void HideAllOptions()

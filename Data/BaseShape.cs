@@ -10,7 +10,6 @@ namespace ShapesEditor.Data
     public abstract class BaseShape : IShape
     {
         public bool isSelected { protected get; set; }
-        public Vertice selectedVertice;
         public static Graphics _graphics { get; set; }
         public static Bitmap _bitmap { get; set; }
         public abstract void Draw();
@@ -103,12 +102,6 @@ namespace ShapesEditor.Data
                     _bitmap.SetPixel(x, y, color);
                 }
             }
-        }
-
-        protected void DrawVertice(Point point)
-        {
-            int radius = 5;
-            _graphics.FillEllipse(new SolidBrush(Color.Orange), point.X - radius, point.Y - radius, radius * 2, radius * 2);
         }
     }
 }

@@ -34,10 +34,10 @@ namespace ShapesEditor.Data
             for (int i = 0; i < points.Count - 1; i++)
             {
                 DrawLine(points[i].GetPosition(), points[i + 1].GetPosition(), color);
-                DrawVertice(points[i].GetPosition());
+                points[i].Draw(_graphics);
             }
             DrawLine(points[points.Count - 1].GetPosition(), points[0].GetPosition(), color);
-            DrawVertice(points[points.Count - 1].GetPosition());
+            points[points.Count - 1].Draw(_graphics);
         }
 
         public override bool CheckIfClicked(Point point)
@@ -60,11 +60,6 @@ namespace ShapesEditor.Data
                 j = i;
             }
             return result;
-        }
-
-        public  Vertice SelectVertice()
-        {
-            return _vertices.Last();
         }
 
         public bool CheckIfClickedVertice(Point point, out Vertice clickedVertice)
@@ -90,5 +85,7 @@ namespace ShapesEditor.Data
                 vertice.SetPosition(position);
             }
         }
+
+        public void Remove(Vertice vertice) => _vertices.Remove(vertice);
     }
 }

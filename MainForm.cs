@@ -42,14 +42,14 @@ namespace ShapesEditor
             else if (_selectedVertice != null)
             {
                 Polygon polygon = (Polygon)_selectedShape;
+                UnSelectVertice();
+
                 if (polygon.CheckIfClickedVertice(_position, out Vertice clickedVertice))
                 {
-                    _selectedVertice = clickedVertice;
-                    _verticeMoving = true;
+                    SelectVertice(clickedVertice);
                 }
                 else 
                 {
-                    UnSelectVertice();
                     if (!_selectedShape.CheckIfClicked(_position))
                         UnSelectShape();
                 }
@@ -61,8 +61,7 @@ namespace ShapesEditor
                     Polygon polygon = (Polygon)_selectedShape;
                     if (polygon.CheckIfClickedVertice(_position, out Vertice clickedVertice))
                     {
-                        _selectedVertice = clickedVertice;
-                        _verticeMoving = true;
+                        SelectVertice(clickedVertice);
                     }
                     else if (_selectedShape.CheckIfClicked(_position))
                     {
@@ -149,7 +148,15 @@ namespace ShapesEditor
         {
             if (_selectedShape != null)
             {
-                _shapes.Remove(_selectedShape);
+                if (CheckIfPolygon(_selectedShape) && _selectedVertice != null)
+                {
+                    var shape = (Polygon)_selectedShape;
+                    shape.Remove(_selectedVertice);
+                }
+                else
+                {
+                    _shapes.Remove(_selectedShape);
+                }
                 UnSelectShape();
             }
         }

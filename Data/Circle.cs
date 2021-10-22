@@ -18,19 +18,8 @@ namespace ShapesEditor.Data
         }
         public override void UpdateShape(Vertice vertice) => _center = vertice;
 
-        public override void Draw()
-        {
-            Point center = _center.GetPosition();
-            int radius = _radius; 
-            Color color;
-            if (isSelected)
-                color = Color.Blue;
-            else
-                color = Color.Black;
-
-            _graphics.DrawEllipse(new Pen(color), center.X - radius, center.Y - radius, (radius * 2), (radius * 2));
-            _center.Draw(_graphics);
-        }
+        public void ChangeRadius(int radius) => _radius = radius;
+        public Point GetCenterPostion() => _center.GetPosition();
 
         public override bool CheckIfClicked(Point point)
         {
@@ -45,7 +34,19 @@ namespace ShapesEditor.Data
             }
         }
 
-        public void ChangeRadius(int radius) => _radius = radius;
+        public override void Draw()
+        {
+            Point center = _center.GetPosition();
+            int radius = _radius; 
+            Color color;
+            if (isSelected)
+                color = Color.Blue;
+            else
+                color = Color.Black;
+
+            _graphics.DrawEllipse(new Pen(color), center.X - radius, center.Y - radius, (radius * 2), (radius * 2));
+            _center.Draw(_graphics);
+        }
 
         public override void Move(Point startingPoint, Point endingPoint)
         {

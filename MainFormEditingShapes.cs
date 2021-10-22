@@ -52,6 +52,17 @@ namespace ShapesEditor
             _verticeMoving = true;
         }
 
+        private void SelectEdge(Vertice vertice)
+        {
+            _secondSelectedVertice = vertice;
+            _secondSelectedVertice.Select();
+        }
+
+        private void MoveEdge()
+        {
+
+        }
+
         private void UnSelectShape()
         {
             if (_selectedShape != null)
@@ -76,19 +87,29 @@ namespace ShapesEditor
             _selectedVertice.UnSelect();
             _selectedVertice = null;
             _verticeMoving = false;
+            if (_secondSelectedVertice != null)
+            {
+                UnSelectEdge();
+            }
         }
 
-        private void ChangePositionTextBoxes()
+        private void UnSelectEdge()
         {
-            positionXTextBox.Text = _position.X.ToString();
-            positionYTextBox.Text = _position.Y.ToString();
+            _secondSelectedVertice.UnSelect();
+            _secondSelectedVertice = null;
+            _edgeMoving = false;
         }
 
         private void SetOptionsForCorrectShape()
         {
             HideAllOptions();
+            if (_newShape != null)
+            {
+                addButton.Visible = true;
+            }
             if (_selectedShape != null)
             {
+                deleteButton.Visible = true;
                 if (CheckIfPolygon(_selectedShape))
                 {
                     SelectedPolygon();
@@ -97,7 +118,6 @@ namespace ShapesEditor
                 {
                     SelectedCircle();
                 }
-                addButton.Visible = deleteButton.Visible = true;
             }
         }
 
@@ -111,7 +131,14 @@ namespace ShapesEditor
         {
             if (_selectedVertice != null)
             {
-                SelectedVertice();
+                if (_secondSelectedVertice != null)
+                {
+                    SelectedEdge();
+                }
+                else
+                {
+                    SelectedVertice();
+                }
             }
         }
 
@@ -120,11 +147,23 @@ namespace ShapesEditor
             positionXTextBox.Visible = positionYTextBox.Visible = positionLabel.Visible = true;
         }
 
+        private void SelectedEdge()
+        {
+            addButton.Visible = true;
+            deleteButton.Visible = false;
+        }
+
         private void HideAllOptions()
         {
             radiusLabel.Visible = radiusTextBox.Visible = false;
             positionXTextBox.Visible = positionYTextBox.Visible = positionLabel.Visible = false;
             addButton.Visible = deleteButton.Visible = false;
+        }
+
+        private void ChangePositionTextBoxes(Point position)
+        {
+            positionXTextBox.Text = position.X.ToString();
+            positionYTextBox.Text = position.Y.ToString();
         }
 
         private bool CheckIfCircle(IShape shape) => shape.GetType() == typeof(Circle);

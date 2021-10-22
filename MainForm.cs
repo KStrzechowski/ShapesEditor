@@ -15,11 +15,13 @@ namespace ShapesEditor
     {
         private readonly List<IShape> _shapes = new();
         private IShape _newShape;
+        private Point _position;
         private IShape _selectedShape;
         private Vertice _selectedVertice;
-        private Point _position;
+        private Vertice _secondSelectedVertice;
         private bool _shapeMoving;
         private bool _verticeMoving;
+        private bool _edgeMoving;
         public MainForm()
         {
             InitializeComponent();
@@ -33,23 +35,46 @@ namespace ShapesEditor
         private void mainPictureBox_MouseDown(object sender, MouseEventArgs e)
         {
             _position = new Point(e.X, e.Y);
-            ChangePositionTextBoxes();
+            ChangePositionTextBoxes(_position);
             if (_newShape != null)
             {
                 _selectedVertice = new Vertice(_position);
                 _newShape.UpdateShape(_selectedVertice);
             }
+            else if (_secondSelectedVertice != null)
+            {
+                Polygon polygon = (Polygon)_selectedShape;
+                if (polygon.CheckIfClickedEdge(_selectedVertice, _secondSelectedVertice, _position))
+                { 
+                    _edgeMoving = true;
+                }
+                else
+                {
+                    UnSelectVertice();
+                    if (!_selectedShape.CheckIfClicked(_position))
+                        UnSelectShape();
+                }
+
+            }
             else if (_selectedVertice != null)
             {
                 Polygon polygon = (Polygon)_selectedShape;
-                UnSelectVertice();
 
                 if (polygon.CheckIfClickedVertice(_position, out Vertice clickedVertice))
                 {
-                    SelectVertice(clickedVertice);
+                    if (polygon.CheckIfEdge(_selectedVertice, clickedVertice))
+                    {
+                        SelectEdge(clickedVertice);
+                    }
+                    else
+                    {
+                        UnSelectVertice();
+                        SelectVertice(clickedVertice);
+                    }
                 }
                 else 
                 {
+                    UnSelectVertice();
                     if (!_selectedShape.CheckIfClicked(_position))
                         UnSelectShape();
                 }
@@ -84,6 +109,7 @@ namespace ShapesEditor
             else
             {
                 SelectShape(_position);
+                _shapeMoving = true;
             }
             SetOptionsForCorrectShape();
             DrawAllShapes();
@@ -96,6 +122,11 @@ namespace ShapesEditor
                 var position = new Point(e.X, e.Y);
                 _selectedShape.Move(_position, position);
                 _position = position;
+                if (CheckIfCircle(_selectedShape))
+                {
+                    Circle circle = (Circle)_selectedShape;
+                    ChangePositionTextBoxes(circle.GetCenterPostion());
+                }
                 DrawAllShapes();
             }
             else if (_verticeMoving)
@@ -103,15 +134,24 @@ namespace ShapesEditor
                 var position = new Point(e.X, e.Y);
                 _selectedVertice.Move(_position, position);
                 _position = position;
+                ChangePositionTextBoxes(_position);
                 DrawAllShapes();
             }
-
+            else if (_edgeMoving)
+            {
+                var position = new Point(e.X, e.Y);
+                _selectedVertice.Move(_position, position);
+                _secondSelectedVertice.Move(_position, position);
+                _position = position;
+                DrawAllShapes();
+            }
         }
 
         private void mainPictureBox_MouseUp(object sender, MouseEventArgs e)
         {
             _shapeMoving = false;
             _verticeMoving = false;
+            _edgeMoving = false;
         }
 
         private void mainListBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -126,6 +166,7 @@ namespace ShapesEditor
                 _selectedVertice = new Vertice(new Point(100, 100));
                 _newShape = new Circle(_selectedVertice, 50);
             }
+
             if (_newShape != null)
             {
                 _newShape.Select();
@@ -139,6 +180,12 @@ namespace ShapesEditor
             if (_newShape != null)
             {
                 _shapes.Add(_newShape);
+                DrawAllShapes();
+            }
+            else if (_secondSelectedVertice != null)
+            {
+                var polygon = (Polygon)_selectedShape;
+                polygon.AddVertice(_selectedVertice, _secondSelectedVertice);
                 DrawAllShapes();
             }
             UnSelectShape();
@@ -163,7 +210,6 @@ namespace ShapesEditor
 
         private void textBox_NumberValidation(object sender, CancelEventArgs e)
         {
-            
         }
 
         private void positionTextBox_KeyDown(object sender, KeyEventArgs e)

@@ -12,9 +12,9 @@ namespace ShapesEditor.Data
         public bool isSelected { protected get; set; }
         public static Graphics _graphics { get; set; }
         public static Bitmap _bitmap { get; set; }
-        public abstract void Draw();
         public abstract void UpdateShape(Vertice vertice);
         public abstract bool CheckIfClicked(Point point);
+        public abstract void Draw();
         public abstract void Move(Point startingPoint, Point endingPoint);
 
         public void Select()

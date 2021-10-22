@@ -15,9 +15,100 @@ namespace ShapesEditor.Data
             _vertices = new List<Vertice>();
         }
 
-        public override void UpdateShape(Vertice vertice)
+        public override void UpdateShape(Vertice vertice) =>_vertices.Add(vertice);
+
+        public void Remove(Vertice vertice) => _vertices.Remove(vertice);
+
+        public void AddVertice(Vertice vertice1, Vertice vertice2)
         {
-            _vertices.Add(vertice);
+            var point = new Point((vertice1.GetPosition().X + vertice2.GetPosition().X) / 2,
+                (vertice1.GetPosition().Y + vertice2.GetPosition().Y) / 2);
+            var newVertice = new Vertice(point);
+            int indexOfFirst = _vertices.IndexOf(vertice1);
+            int indexOfSecond = _vertices.IndexOf(vertice2);
+            if (indexOfFirst > indexOfSecond)
+            {
+                if (indexOfSecond == 0 && indexOfFirst == _vertices.Count - 1)
+                {
+                    _vertices.Add(newVertice);
+                }
+                else
+                {
+                    _vertices.Insert(indexOfFirst, newVertice);
+                }
+            }
+            else
+            {
+                if (indexOfFirst == 0 && indexOfSecond == _vertices.Count - 1)
+                {
+                    _vertices.Add(newVertice);
+                }
+                else
+                {
+                    _vertices.Insert(indexOfSecond, newVertice);
+                }
+            }
+        }
+
+        public override bool CheckIfClicked(Point point)
+        {
+            bool result = false;
+            int j = _vertices.Count() - 1;
+            for (int i = 0; i < _vertices.Count(); i++)
+            {
+                if (_vertices[i].GetPosition().Y < point.Y && _vertices[j].GetPosition().Y >= point.Y 
+                    || _vertices[j].GetPosition().Y < point.Y && _vertices[i].GetPosition().Y >= point.Y)
+                {
+                    if (_vertices[i].GetPosition().X + (point.Y - 
+                        (double)_vertices[i].GetPosition().Y) / ((double)_vertices[j].GetPosition().Y - 
+                        _vertices[i].GetPosition().Y) * (_vertices[j].GetPosition().X - _vertices[i].GetPosition().X) 
+                        < point.X)
+                    {
+                        result = !result;
+                    }
+                }
+                j = i;
+            }
+            return result;
+        }
+        public bool CheckIfClickedVertice(Point point, out Vertice clickedVertice)
+        {
+            clickedVertice = null;
+            foreach (var vertice in _vertices)
+            {
+                if (vertice.CheckIfClicked(point))
+                {
+                    clickedVertice = vertice;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool CheckIfClickedEdge(Vertice selectedVertice, Vertice secondSelectedVertice, Point position)
+        {
+            if (selectedVertice.CalculateDistance(secondSelectedVertice.GetPosition()) + 3 >=
+                (selectedVertice.CalculateDistance(position) + secondSelectedVertice.CalculateDistance(position)))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool CheckIfEdge(Vertice vertice1, Vertice vertice2)
+        {
+            if (Math.Abs(_vertices.IndexOf(vertice1) - _vertices.IndexOf(vertice2)) == 1 ||
+                Math.Abs(_vertices.IndexOf(vertice1) - _vertices.IndexOf(vertice2)) == _vertices.Count - 1)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public override void Draw()
@@ -40,42 +131,6 @@ namespace ShapesEditor.Data
             points[points.Count - 1].Draw(_graphics);
         }
 
-        public override bool CheckIfClicked(Point point)
-        {
-            bool result = false;
-            int j = _vertices.Count() - 1;
-            for (int i = 0; i < _vertices.Count(); i++)
-            {
-                if (_vertices[i].GetPosition().Y < point.Y && _vertices[j].GetPosition().Y >= point.Y 
-                    || _vertices[j].GetPosition().Y < point.Y && _vertices[i].GetPosition().Y >= point.Y)
-                {
-                    if (_vertices[i].GetPosition().X + (point.Y - 
-                        (float)_vertices[i].GetPosition().Y) / ((float)_vertices[j].GetPosition().Y - 
-                        _vertices[i].GetPosition().Y) * (_vertices[j].GetPosition().X - _vertices[i].GetPosition().X) 
-                        < point.X)
-                    {
-                        result = !result;
-                    }
-                }
-                j = i;
-            }
-            return result;
-        }
-
-        public bool CheckIfClickedVertice(Point point, out Vertice clickedVertice)
-        {
-            clickedVertice = null;
-            foreach (var vertice in _vertices)
-            {
-                if (vertice.CheckIfClicked(point))
-                {
-                    clickedVertice = vertice;
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public override void Move(Point startingPoint, Point endingPoint)
         {
             foreach (var vertice in _vertices)
@@ -85,7 +140,5 @@ namespace ShapesEditor.Data
                 vertice.SetPosition(position);
             }
         }
-
-        public void Remove(Vertice vertice) => _vertices.Remove(vertice);
     }
 }

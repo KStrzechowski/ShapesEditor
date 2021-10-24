@@ -19,13 +19,13 @@ namespace ShapesEditor.Data
 
         public void Remove(Vertice vertice) => _vertices.Remove(vertice);
 
-        public void AddVertice(Vertice vertice1, Vertice vertice2)
+        public void AddVertice(Vertice firstVertice, Vertice secondVertice)
         {
-            var point = new Point((vertice1.GetPosition().X + vertice2.GetPosition().X) / 2,
-                (vertice1.GetPosition().Y + vertice2.GetPosition().Y) / 2);
+            var point = new Point((firstVertice.GetPosition().X + secondVertice.GetPosition().X) / 2,
+                (firstVertice.GetPosition().Y + secondVertice.GetPosition().Y) / 2);
             var newVertice = new Vertice(point);
-            int indexOfFirst = _vertices.IndexOf(vertice1);
-            int indexOfSecond = _vertices.IndexOf(vertice2);
+            int indexOfFirst = _vertices.IndexOf(firstVertice);
+            int indexOfSecond = _vertices.IndexOf(secondVertice);
             if (indexOfFirst > indexOfSecond)
             {
                 if (indexOfSecond == 0 && indexOfFirst == _vertices.Count - 1)
@@ -138,6 +138,40 @@ namespace ShapesEditor.Data
                 var position = new Point(endingPoint.X + (vertice.GetPosition().X - startingPoint.X),
                 endingPoint.Y + (vertice.GetPosition().Y - startingPoint.Y));
                 vertice.SetPosition(position);
+            }
+            if (_relation != null)
+            {
+                _relation.Execute();
+            }
+        }
+
+        public int CheckOrder(Vertice firstVertice, Vertice secondVertice)
+        {
+            int indexOfFirst = _vertices.IndexOf(firstVertice);
+            int indexOfSecond = _vertices.IndexOf(secondVertice);
+            if (indexOfFirst == -1 || indexOfSecond == -1)
+                return -1;
+            if (indexOfFirst > indexOfSecond)
+            {
+                if (indexOfSecond == 0 && indexOfFirst == _vertices.Count - 1)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+            else
+            {
+                if (indexOfFirst == 0 && indexOfSecond == _vertices.Count - 1)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
             }
         }
     }

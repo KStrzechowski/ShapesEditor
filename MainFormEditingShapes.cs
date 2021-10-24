@@ -52,12 +52,6 @@ namespace ShapesEditor
             _verticeMoving = true;
         }
 
-        private void SelectEdge(Vertice vertice)
-        {
-            _secondSelectedVertice = vertice;
-            _secondSelectedVertice.Select();
-        }
-
         private void MoveEdge()
         {
 
@@ -87,7 +81,7 @@ namespace ShapesEditor
             _selectedVertice.UnSelect();
             _selectedVertice = null;
             _verticeMoving = false;
-            if (_secondSelectedVertice != null)
+            if (_selectedEdge != null && !_selectingSecondEdge)
             {
                 UnSelectEdge();
             }
@@ -95,8 +89,9 @@ namespace ShapesEditor
 
         private void UnSelectEdge()
         {
-            _secondSelectedVertice.UnSelect();
-            _secondSelectedVertice = null;
+            _selectedEdge._secondVertice.UnSelect();
+            _selectedEdge._firstVertice.UnSelect();
+            _selectedEdge = null;
             _edgeMoving = false;
         }
 
@@ -105,11 +100,12 @@ namespace ShapesEditor
             HideAllOptions();
             if (_newShape != null)
             {
-                addButton.Visible = true;
+                addButton.Enabled = true;
             }
             if (_selectedShape != null)
             {
-                deleteButton.Visible = true;
+                deleteButton.Enabled = true;
+                deleteRelationButton.Enabled = true;
                 if (CheckIfPolygon(_selectedShape))
                 {
                     SelectedPolygon();
@@ -123,15 +119,16 @@ namespace ShapesEditor
 
         private void SelectedCircle()
         {
-            radiusLabel.Visible = radiusTextBox.Visible = true;
-            positionXTextBox.Visible = positionYTextBox.Visible = positionLabel.Visible = true;
+            radiusLabel.Enabled = radiusTextBox.Enabled = true;
+            positionXTextBox.Enabled = positionYTextBox.Enabled = positionLabel.Enabled = true;
+            lockCircleButton.Enabled = LockLengthButton.Enabled = true;
         }
 
         private void SelectedPolygon()
         {
             if (_selectedVertice != null)
             {
-                if (_secondSelectedVertice != null)
+                if (_selectedEdge != null)
                 {
                     SelectedEdge();
                 }
@@ -144,20 +141,25 @@ namespace ShapesEditor
 
         private void SelectedVertice()
         {
-            positionXTextBox.Visible = positionYTextBox.Visible = positionLabel.Visible = true;
+            positionXTextBox.Enabled = positionYTextBox.Enabled = positionLabel.Enabled = true;
         }
 
         private void SelectedEdge()
         {
-            addButton.Visible = true;
-            deleteButton.Visible = false;
+            addButton.Enabled = true;
+            deleteButton.Enabled = false;
+            equalLengthsButton.Enabled = orthogonalButton.Enabled = tangencyButton.Visible = true;
+            LockLengthButton.Enabled = true;
         }
 
         private void HideAllOptions()
         {
-            radiusLabel.Visible = radiusTextBox.Visible = false;
-            positionXTextBox.Visible = positionYTextBox.Visible = positionLabel.Visible = false;
-            addButton.Visible = deleteButton.Visible = false;
+            radiusLabel.Enabled = radiusTextBox.Enabled = false;
+            positionXTextBox.Enabled = positionYTextBox.Enabled = positionLabel.Enabled = false;
+            addButton.Enabled = deleteButton.Enabled = false;
+            lockCircleButton.Enabled = LockLengthButton.Enabled = false;
+            equalLengthsButton.Enabled = orthogonalButton.Enabled = tangencyButton.Enabled = false;
+            deleteRelationButton.Enabled = false;
         }
 
         private void ChangePositionTextBoxes(Point position)

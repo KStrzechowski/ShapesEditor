@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShapesEditor.Relations;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -18,8 +19,10 @@ namespace ShapesEditor.Data
         }
         public override void UpdateShape(Vertice vertice) => _center = vertice;
 
-        public void ChangeRadius(int radius) => _radius = radius;
+        public void SetRadius(int radius) => _radius = radius;
+        public int GetRadius() => _radius;
         public Point GetCenterPostion() => _center.GetPosition();
+        public void SetCenterPosition(Point point) => _center.SetPosition(point);
 
         public override bool CheckIfClicked(Point point)
         {
@@ -51,8 +54,18 @@ namespace ShapesEditor.Data
         public override void Move(Point startingPoint, Point endingPoint)
         {
             var position = new Point(endingPoint.X + (_center.GetPosition().X - startingPoint.X),
-                endingPoint.Y + (_center.GetPosition().Y - startingPoint.Y));
+            endingPoint.Y + (_center.GetPosition().Y - startingPoint.Y));
             _center.SetPosition(position);
+            if (_relation != null)
+            {
+                _relation.Execute();
+            }
+        }
+
+        public override void SetRelation(IRelation relation)
+        {
+            _center.SetRelation(relation);
+            base.SetRelation(relation);
         }
     }
 }

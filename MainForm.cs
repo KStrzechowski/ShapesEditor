@@ -1,4 +1,5 @@
 ﻿using ShapesEditor.Data;
+using ShapesEditor.Relations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,10 +19,13 @@ namespace ShapesEditor
         private Point _position;
         private IShape _selectedShape;
         private Vertice _selectedVertice;
-        private Vertice _secondSelectedVertice;
+        private Edge _selectedEdge;
+        private Edge _secondEdge;
         private bool _shapeMoving;
         private bool _verticeMoving;
         private bool _edgeMoving;
+        private bool _selectingSecondEdge;
+
         public MainForm()
         {
             InitializeComponent();
@@ -36,15 +40,79 @@ namespace ShapesEditor
         {
             _position = new Point(e.X, e.Y);
             ChangePositionTextBoxes(_position);
+            if (_selectingSecondEdge)
+            {
+                if (_selectedVertice != null)
+                {
+                    Polygon polygon = (Polygon)_selectedShape;
+
+                    if (polygon.CheckIfClickedVertice(_position, out Vertice clickedVertice))
+                    {
+                        if (polygon.CheckIfEdge(_selectedVertice, clickedVertice))
+                        {
+                            clickedVertice.Select();
+                            _secondEdge = new Edge(_selectedVertice, clickedVertice, (Polygon)_selectedShape);
+                            if (_secondEdge._firstVertice == _selectedEdge._firstVertice &&
+                                _secondEdge._secondVertice == _selectedEdge._secondVertice)
+                            {
+                                _selectedEdge = null;
+                                _selectedVertice = null;
+                            }
+                            else
+                            {
+                                new EqualEdges(_selectedEdge, _secondEdge);
+                                _selectingSecondEdge = false;
+                            }
+                        }
+                        else
+                        {
+                            UnSelectVertice();
+                            SelectVertice(clickedVertice);
+                        }
+                    }
+                    else
+                    {
+                        UnSelectVertice();
+                        if (!_selectedShape.CheckIfClicked(_position))
+                            UnSelectShape();
+                    }
+                }
+                else if (_selectedShape != null)
+                {
+                    if (CheckIfPolygon(_selectedShape))
+                    {
+                        Polygon polygon = (Polygon)_selectedShape;
+                        if (polygon.CheckIfClickedVertice(_position, out Vertice clickedVertice))
+                        {
+                            SelectVertice(clickedVertice);
+                        }
+ 
+                        else
+                        {
+                            UnSelectShape();
+                        }
+                    }
+                    else
+                    {
+                        UnSelectShape();
+                    }
+                }
+                else
+                {
+                    SelectShape(_position);
+                }
+                DrawAllShapes();
+                return;
+            }
+
             if (_newShape != null)
             {
                 _selectedVertice = new Vertice(_position);
                 _newShape.UpdateShape(_selectedVertice);
             }
-            else if (_secondSelectedVertice != null)
+            else if (_selectedEdge != null)
             {
-                Polygon polygon = (Polygon)_selectedShape;
-                if (polygon.CheckIfClickedEdge(_selectedVertice, _secondSelectedVertice, _position))
+                if (_selectedEdge.CheckIfClicked(_position))
                 { 
                     _edgeMoving = true;
                 }
@@ -64,7 +132,8 @@ namespace ShapesEditor
                 {
                     if (polygon.CheckIfEdge(_selectedVertice, clickedVertice))
                     {
-                        SelectEdge(clickedVertice);
+                        clickedVertice.Select();
+                        _selectedEdge = new Edge(_selectedVertice, clickedVertice, (Polygon)_selectedShape);
                     }
                     else
                     {
@@ -119,6 +188,11 @@ namespace ShapesEditor
         {
             if (_shapeMoving)
             {
+                if (_selectedShape == null)
+                {
+                    _shapeMoving = false;
+                    return;
+                }
                 var position = new Point(e.X, e.Y);
                 _selectedShape.Move(_position, position);
                 _position = position;
@@ -127,28 +201,43 @@ namespace ShapesEditor
                     Circle circle = (Circle)_selectedShape;
                     ChangePositionTextBoxes(circle.GetCenterPostion());
                 }
+                _selectedShape.ExecuteRelation();
                 DrawAllShapes();
             }
             else if (_verticeMoving)
             {
+                _selectedVertice.ExecuteRelation();
                 var position = new Point(e.X, e.Y);
                 _selectedVertice.Move(_position, position);
                 _position = position;
-                ChangePositionTextBoxes(_position);
+                _selectedVertice.ExecuteRelation();
+                ChangePositionTextBoxes(_selectedVertice.GetPosition());
                 DrawAllShapes();
             }
             else if (_edgeMoving)
             {
                 var position = new Point(e.X, e.Y);
-                _selectedVertice.Move(_position, position);
-                _secondSelectedVertice.Move(_position, position);
+                _selectedEdge.Move(_position, position);
                 _position = position;
+                _selectedEdge.ExecuteRelation();
                 DrawAllShapes();
             }
         }
 
         private void mainPictureBox_MouseUp(object sender, MouseEventArgs e)
         {
+            if (_selectedEdge != null)
+            {
+                _selectedEdge.ExecuteRelation();
+            }
+            if (_selectedVertice != null)
+            {
+                _selectedVertice.ExecuteRelation();
+            }
+            if (_selectedShape != null)
+            {
+                _selectedShape.ExecuteRelation();
+            }
             _shapeMoving = false;
             _verticeMoving = false;
             _edgeMoving = false;
@@ -182,10 +271,10 @@ namespace ShapesEditor
                 _shapes.Add(_newShape);
                 DrawAllShapes();
             }
-            else if (_secondSelectedVertice != null)
+            else if (_selectedEdge != null)
             {
                 var polygon = (Polygon)_selectedShape;
-                polygon.AddVertice(_selectedVertice, _secondSelectedVertice);
+                polygon.AddVertice(_selectedEdge._firstVertice, _selectedEdge._secondVertice);
                 DrawAllShapes();
             }
             UnSelectShape();
@@ -219,6 +308,7 @@ namespace ShapesEditor
                 _position.X = int.Parse(positionXTextBox.Text);
                 _position.Y = int.Parse(positionYTextBox.Text);
                 _selectedVertice.SetPosition(_position);
+                _selectedVertice.ExecuteRelation();
                 DrawAllShapes();
             }
         }
@@ -228,8 +318,63 @@ namespace ShapesEditor
             if (e.KeyCode == Keys.Enter && CheckIfCircle(_selectedShape))
             {
                 var circle = (Circle)_selectedShape;
-                circle.ChangeRadius(int.Parse(radiusTextBox.Text));
+                circle.SetRadius(int.Parse(radiusTextBox.Text));
+                circle.ExecuteRelation();
                 DrawAllShapes();
+            }
+        }
+
+        private void lockCircleButton_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (_selectedShape != null && CheckIfCircle(_selectedShape))
+            {
+                new LockedCircle((Circle)_selectedShape);
+            }
+        }
+
+        private void LockLengthButton_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (_selectedShape != null && CheckIfCircle(_selectedShape))
+            {
+                new SpecifiedRadius((Circle)_selectedShape);
+            }
+            else if (_selectedEdge != null)
+            {
+                new SpecifiedEdge(_selectedEdge);
+            }
+        }
+
+        private void equalLengthsButton_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (_selectedEdge != null)
+            {
+                _selectingSecondEdge = true;
+                UnSelectShape();
+            }
+        }
+        private void orthogonalButton_MouseDown(object sender, MouseEventArgs e)
+        {
+
+        }
+
+        private void tangencyButton_MouseDown(object sender, MouseEventArgs e)
+        {
+
+        }
+
+        private void deleteRelationButton_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (_selectedShape != null)
+            {
+                _selectedShape.DeleteRelation();
+            }
+            else if (_selectedVertice != null)
+            {
+                _selectedVertice.DeleteRelation();
+            }
+            else if (_selectedEdge != null)
+            {
+                _selectedEdge.DeleteRelation();
             }
         }
     }

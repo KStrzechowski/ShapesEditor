@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShapesEditor.Relations;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -15,5 +16,11 @@ namespace ShapesEditor.Data
         public bool CheckIfClicked(Point point);
         public void Draw();
         public void Move(Point startingPoint, Point endingPoint);
+        public void SetRelation(IRelation relation);
+        // Usuwamy całą relację i referencje na nią
+        public void DeleteRelation();
+        // Usuwamy referencję na relację
+        public void RemoveRelation();
+        public void ExecuteRelation();
     }
 }

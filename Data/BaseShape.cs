@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShapesEditor.Relations;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -9,7 +10,9 @@ namespace ShapesEditor.Data
 {
     public abstract class BaseShape : IShape
     {
+        protected IRelation _relation;
         public bool isSelected { protected get; set; }
+        public bool _setRelation { protected get; set; }
         public static Graphics _graphics { get; set; }
         public static Bitmap _bitmap { get; set; }
         public abstract void UpdateShape(Vertice vertice);
@@ -26,6 +29,38 @@ namespace ShapesEditor.Data
         {
             isSelected = false;
             Draw();
+        }
+
+        // Usuwamy całą relację i referencje na nią
+        public void DeleteRelation()
+        {
+            if (_relation != null)
+            {
+                _relation.Remove();
+            }
+        }
+
+        // Usuwamy referencję na relację
+        public void RemoveRelation()
+        {
+            _relation = null;
+        }
+
+        public virtual void SetRelation(IRelation relation)
+        {
+            if (_relation != null)
+            {
+                _relation.Remove();
+            }
+            _relation = relation;
+        }
+
+        public void ExecuteRelation()
+        {
+            if (_relation != null)
+            {
+                _relation.Execute();
+            }
         }
 
         protected void DrawLine(Point first_point, Point second_point, Color color)

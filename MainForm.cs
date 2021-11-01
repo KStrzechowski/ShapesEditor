@@ -1,5 +1,7 @@
 ﻿using ShapesEditor.Data;
+using ShapesEditor.Enums;
 using ShapesEditor.Relations;
+using ShapesEditor.Structures;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,16 +17,11 @@ namespace ShapesEditor
     public partial class MainForm : Form
     {
         private readonly List<IShape> _shapes = new();
-        private IShape _newShape;
         private Point _position;
-        private IShape _selectedShape;
-        private Vertice _selectedVertice;
-        private Edge _selectedEdge;
-        private Edge _secondEdge;
-        private bool _shapeMoving;
-        private bool _verticeMoving;
-        private bool _edgeMoving;
-        private bool _selectingSecondEdge;
+        private State _currentState; 
+        private State _stateForRelations;
+        private SelectedItems _items;
+        private RelationId _newRelation; 
 
         public MainForm()
         {
@@ -33,152 +30,139 @@ namespace ShapesEditor
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            SetAllDefault();
             HideAllOptions();
+            CreateRandomFigures();
         }
 
         private void mainPictureBox_MouseDown(object sender, MouseEventArgs e)
         {
             _position = new Point(e.X, e.Y);
             ChangePositionTextBoxes(_position);
-            if (_selectingSecondEdge)
-            {
-                if (_selectedVertice != null)
-                {
-                    Polygon polygon = (Polygon)_selectedShape;
 
-                    if (polygon.CheckIfClickedVertice(_position, out Vertice clickedVertice))
+            switch (_currentState)
+            {
+                case State.Default:
                     {
-                        if (polygon.CheckIfEdge(_selectedVertice, clickedVertice))
-                        {
-                            clickedVertice.Select();
-                            _secondEdge = new Edge(_selectedVertice, clickedVertice, (Polygon)_selectedShape);
-                            if (_secondEdge._firstVertice == _selectedEdge._firstVertice &&
-                                _secondEdge._secondVertice == _selectedEdge._secondVertice)
-                            {
-                                _selectedEdge = null;
-                                _selectedVertice = null;
-                            }
-                            else
-                            {
-                                new EqualEdges(_selectedEdge, _secondEdge);
-                                _selectingSecondEdge = false;
-                            }
-                        }
-                        else
-                        {
-                            UnSelectVertice();
-                            SelectVertice(clickedVertice);
-                        }
+                        SelectShape(_position);
+                        break;
                     }
-                    else
+                case State.NewShape:
                     {
-                        UnSelectVertice();
-                        if (!_selectedShape.CheckIfClicked(_position))
-                            UnSelectShape();
+                        var vertice = new Vertice(_position);
+                        _items.shape.UpdateShape(vertice);
+                        break;
                     }
-                }
-                else if (_selectedShape != null)
-                {
-                    if (CheckIfPolygon(_selectedShape))
+                case State.SelectedShape:
                     {
-                        Polygon polygon = (Polygon)_selectedShape;
-                        if (polygon.CheckIfClickedVertice(_position, out Vertice clickedVertice))
+                        if (CheckIfVertice(out Vertice clickedVertice))
                         {
                             SelectVertice(clickedVertice);
                         }
- 
+
+                        if (_items.vertice == null && CheckIfShape())
+                        {
+                            SetState(State.MoveShape);
+                        }
+                        break;
+                    }
+                case State.SelectedVertice:
+                    {
+                        if (CheckIfEdge(out Vertice clickedVertice))
+                        {
+                            SelectEdge(new Edge(_items.vertice, clickedVertice, (Polygon)_items.shape));
+                        }
+                        break;
+                    }
+                case State.SelectedEdge:
+                    {
+                        if (_items.edge.CheckIfClicked(_position))
+                        {
+                            SetState(State.MoveEdge);
+                        }
                         else
                         {
-                            UnSelectShape();
+                            UnSelectEdge();
+                            if (!_items.shape.CheckIfClicked(_position))
+                                UnSelectShape();
+                        }
+                        break;
+                    }
+                case State.SelectingCircle:
+                    {
+                        SelectShape(_position);
+                        if (_items.shape != null && CheckIfCircle(_items.shape))
+                        {
+                            new Tangency((Circle)_items.shape, _items.secondEdge);
+                            SetAllDefault();
+                        }
+                        break;
+                    }
+                case State.SelectingSecondEdge:
+                    {
+                        switch (_stateForRelations)
+                        {
+                            case State.Default:
+                                {
+                                    SelectShape(_position);
+                                    if (_items.shape != null && CheckIfPolygon(_items.shape))
+                                    {
+                                        _stateForRelations = State.SelectedShape;
+                                    }
+                                    else
+                                    {
+                                        UnSelectShape();
+                                    }
+                                    break;
+                                }
+                            case State.SelectedShape:
+                                {
+
+                                    if (CheckIfVertice(out Vertice clickedVertice))
+                                    {
+                                        SelectVertice(clickedVertice);
+                                        _stateForRelations = State.SelectedVertice;
+                                    }
+                                    break;
+                                }
+                            case State.SelectedVertice:
+                                {
+                                    if (CheckIfEdge(out Vertice clickedVertice))
+                                    { 
+                                        _items.edge = new Edge(_items.vertice, clickedVertice, (Polygon)_items.shape);
+                                        _items.edge.Select();
+                                        if (_items.edge.Equals(_items.secondEdge))
+                                        {
+                                            UnSelectShape();
+                                            break;
+                                        }
+
+                                        switch (_newRelation)
+                                        {
+                                            case RelationId.EqualEdges:
+                                                {
+                                                    new EqualEdges(_items.edge, _items.secondEdge);
+                                                    break;
+                                                }
+                                            case RelationId.OrthogonalLines:
+                                                {
+                                                    new OrthogonalLines(_items.edge, _items.secondEdge);
+                                                    break;
+                                                }
+                                            case RelationId.Tangency:
+                                                {
+                                                    new Tangency((Circle)_items.secondShape, _items.edge);
+                                                    break;
+                                                }
+                                        }
+
+                                        SetAllDefault();
+                                    }
+                                    break;
+                                }
                         }
                     }
-                    else
-                    {
-                        UnSelectShape();
-                    }
-                }
-                else
-                {
-                    SelectShape(_position);
-                }
-                DrawAllShapes();
-                return;
-            }
-
-            if (_newShape != null)
-            {
-                _selectedVertice = new Vertice(_position);
-                _newShape.UpdateShape(_selectedVertice);
-            }
-            else if (_selectedEdge != null)
-            {
-                if (_selectedEdge.CheckIfClicked(_position))
-                { 
-                    _edgeMoving = true;
-                }
-                else
-                {
-                    UnSelectVertice();
-                    if (!_selectedShape.CheckIfClicked(_position))
-                        UnSelectShape();
-                }
-
-            }
-            else if (_selectedVertice != null)
-            {
-                Polygon polygon = (Polygon)_selectedShape;
-
-                if (polygon.CheckIfClickedVertice(_position, out Vertice clickedVertice))
-                {
-                    if (polygon.CheckIfEdge(_selectedVertice, clickedVertice))
-                    {
-                        clickedVertice.Select();
-                        _selectedEdge = new Edge(_selectedVertice, clickedVertice, (Polygon)_selectedShape);
-                    }
-                    else
-                    {
-                        UnSelectVertice();
-                        SelectVertice(clickedVertice);
-                    }
-                }
-                else 
-                {
-                    UnSelectVertice();
-                    if (!_selectedShape.CheckIfClicked(_position))
-                        UnSelectShape();
-                }
-            }
-            else if (_selectedShape != null)
-            {
-                if (CheckIfPolygon(_selectedShape))
-                {
-                    Polygon polygon = (Polygon)_selectedShape;
-                    if (polygon.CheckIfClickedVertice(_position, out Vertice clickedVertice))
-                    {
-                        SelectVertice(clickedVertice);
-                    }
-                    else if (_selectedShape.CheckIfClicked(_position))
-                    {
-                        _shapeMoving = true;
-                    }
-                    else
-                    {
-                        UnSelectShape();
-                    }
-                }
-                else if (_selectedShape.CheckIfClicked(_position))
-                {
-                    _shapeMoving = true;
-                }
-                else
-                {
-                    UnSelectShape();
-                }
-            }
-            else
-            {
-                SelectShape(_position);
-                _shapeMoving = true;
+                    break;
             }
             SetOptionsForCorrectShape();
             DrawAllShapes();
@@ -186,115 +170,120 @@ namespace ShapesEditor
 
         private void mainPictureBox_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_shapeMoving)
+            var position = new Point(e.X, e.Y);
+
+            switch (_currentState)
             {
-                if (_selectedShape == null)
-                {
-                    _shapeMoving = false;
-                    return;
-                }
-                var position = new Point(e.X, e.Y);
-                _selectedShape.Move(_position, position);
-                _position = position;
-                if (CheckIfCircle(_selectedShape))
-                {
-                    Circle circle = (Circle)_selectedShape;
-                    ChangePositionTextBoxes(circle.GetCenterPostion());
-                }
-                _selectedShape.ExecuteRelation();
-                DrawAllShapes();
+                case State.MoveShape:
+                    {
+                        MoveShape(position);
+                        break;
+                    }
+                case State.MoveVertice:
+                    {
+                        MoveVertice(position);
+                        break;
+                    }
+                case State.MoveEdge:
+                    {
+                        MoveEdge(position);
+                        break;
+                    }
             }
-            else if (_verticeMoving)
-            {
-                _selectedVertice.ExecuteRelation();
-                var position = new Point(e.X, e.Y);
-                _selectedVertice.Move(_position, position);
-                _position = position;
-                _selectedVertice.ExecuteRelation();
-                ChangePositionTextBoxes(_selectedVertice.GetPosition());
-                DrawAllShapes();
-            }
-            else if (_edgeMoving)
-            {
-                var position = new Point(e.X, e.Y);
-                _selectedEdge.Move(_position, position);
-                _position = position;
-                _selectedEdge.ExecuteRelation();
-                DrawAllShapes();
-            }
+            _position = position;
         }
 
         private void mainPictureBox_MouseUp(object sender, MouseEventArgs e)
         {
-            if (_selectedEdge != null)
+            switch (_currentState)
             {
-                _selectedEdge.ExecuteRelation();
+                case State.MoveShape:
+                    {
+                        _items.shape.ExecuteRelation();
+                        SetState(State.SelectedShape);
+                        break;
+                    }
+                case State.MoveVertice:
+                    {
+                        SetState(State.SelectedVertice);
+                        break;
+                    }
+                case State.MoveEdge:
+                    {
+                        SetState(State.SelectedEdge);
+                        break;
+                    }
             }
-            if (_selectedVertice != null)
-            {
-                _selectedVertice.ExecuteRelation();
-            }
-            if (_selectedShape != null)
-            {
-                _selectedShape.ExecuteRelation();
-            }
-            _shapeMoving = false;
-            _verticeMoving = false;
-            _edgeMoving = false;
         }
 
         private void mainListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             UnSelectShape();
+            SetState();
             if (mainListBox.SelectedIndex == 0)
             {
-                _newShape = new Polygon();
+                _items.shape = new Polygon();
+                SetState(State.NewShape);
             }
             else if (mainListBox.SelectedIndex == 1)
             {
-                _selectedVertice = new Vertice(new Point(100, 100));
-                _newShape = new Circle(_selectedVertice, 50);
+                _items.vertice = new Vertice(new Point(100, 100));
+                _items.shape = new Circle(_items.vertice, 50);
+                SetState(State.NewShape);
             }
 
-            if (_newShape != null)
+            if (_currentState == State.NewShape)
             {
-                _newShape.Select();
-                _selectedShape = _newShape;
+                _items.shape.Select();
                 SetOptionsForCorrectShape();
             }
         }
 
         private void addButton_MouseClick(object sender, MouseEventArgs e)
         {
-            if (_newShape != null)
+            switch (_currentState)
             {
-                _shapes.Add(_newShape);
-                DrawAllShapes();
+                case State.NewShape:
+                    {
+                        if (_items.shape.CheckIfCorrect())
+                        {
+                            _shapes.Add(_items.shape);
+                            DrawAllShapes();
+                        }
+                        break;
+                    }
+                case State.SelectedEdge:
+                    {
+                        _items.edge.DeleteRelation();
+                        var polygon = (Polygon)_items.shape;
+                        polygon.AddVertice(_items.edge._firstVertice, _items.edge._secondVertice);
+                        break;
+                    }
             }
-            else if (_selectedEdge != null)
-            {
-                var polygon = (Polygon)_selectedShape;
-                polygon.AddVertice(_selectedEdge._firstVertice, _selectedEdge._secondVertice);
-                DrawAllShapes();
-            }
+            SetState();
             UnSelectShape();
         }
 
         private void deleteButton_MouseClick(object sender, MouseEventArgs e)
         {
-            if (_selectedShape != null)
+            switch (_currentState)
             {
-                if (CheckIfPolygon(_selectedShape) && _selectedVertice != null)
-                {
-                    var shape = (Polygon)_selectedShape;
-                    shape.Remove(_selectedVertice);
-                }
-                else
-                {
-                    _shapes.Remove(_selectedShape);
-                }
-                UnSelectShape();
+                case State.SelectedShape:
+                    {
+                        _shapes.Remove(_items.shape);
+                        break;
+                    }
+                case State.SelectedVertice:
+                    {
+                        var polygon = (Polygon)_items.shape;
+                        polygon.Remove(_items.vertice);
+                        if (!_items.shape.CheckIfCorrect())
+                            _shapes.Remove(_items.shape);
+                        break;
+                    }
             }
+            SetState();
+            UnSelectShape();
         }
 
         private void textBox_NumberValidation(object sender, CancelEventArgs e)
@@ -307,75 +296,145 @@ namespace ShapesEditor
             {
                 _position.X = int.Parse(positionXTextBox.Text);
                 _position.Y = int.Parse(positionYTextBox.Text);
-                _selectedVertice.SetPosition(_position);
-                _selectedVertice.ExecuteRelation();
+
+                switch (_currentState)
+                {
+                    case State.NewShape:
+                    case State.SelectedShape:
+                        {
+                            if (CheckIfCircle(_items.shape))
+                            {
+                                var circle = (Circle)_items.shape;
+                                circle.SetCenterPosition(_position);
+                                circle.ExecuteRelation();
+                            }
+                            break;
+                        }
+                    case State.SelectedVertice:
+                        {
+                            _items.vertice.SetPosition(_position);
+                            break;
+                        }
+                }
                 DrawAllShapes();
             }
         }
 
         private void radiusTextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter && CheckIfCircle(_selectedShape))
+            if (e.KeyCode == Keys.Enter && _currentState == State.SelectedShape && CheckIfCircle(_items.shape))
             {
-                var circle = (Circle)_selectedShape;
-                circle.SetRadius(int.Parse(radiusTextBox.Text));
-                circle.ExecuteRelation();
+                switch (_currentState)
+                {
+                    case State.NewShape:
+                    case State.SelectedShape:
+                        {
+                            if (CheckIfCircle(_items.shape))
+                            {
+                                var circle = (Circle)_items.shape;
+                                circle.SetRadius(int.Parse(radiusTextBox.Text));
+                                circle.ExecuteRelation();
+                            }
+                            break;
+                        }
+                }
+                if (!_items.shape.CheckIfCorrect())
+                {
+                    _shapes.Remove(_items.shape);
+                }
                 DrawAllShapes();
             }
         }
 
         private void lockCircleButton_MouseDown(object sender, MouseEventArgs e)
         {
-            if (_selectedShape != null && CheckIfCircle(_selectedShape))
+            if (_currentState == State.SelectedShape && CheckIfCircle(_items.shape))
             {
-                new LockedCircle((Circle)_selectedShape);
+                new LockedCircle((Circle)_items.shape);
             }
         }
 
         private void LockLengthButton_MouseDown(object sender, MouseEventArgs e)
         {
-            if (_selectedShape != null && CheckIfCircle(_selectedShape))
+            if (_currentState == State.SelectedShape && CheckIfCircle(_items.shape))
             {
-                new SpecifiedRadius((Circle)_selectedShape);
+                new SpecifiedRadius((Circle)_items.shape);
             }
-            else if (_selectedEdge != null)
+            else if (_currentState == State.SelectedEdge)
             {
-                new SpecifiedEdge(_selectedEdge);
+                new SpecifiedEdge(_items.edge);
             }
         }
 
         private void equalLengthsButton_MouseDown(object sender, MouseEventArgs e)
         {
-            if (_selectedEdge != null)
+            if (_currentState == State.SelectedEdge)
             {
-                _selectingSecondEdge = true;
+                _items.secondEdge = _items.edge;
+                SetState(State.SelectingSecondEdge);
+                SetRelation(RelationId.EqualEdges);
                 UnSelectShape();
             }
         }
         private void orthogonalButton_MouseDown(object sender, MouseEventArgs e)
         {
-
+            if (_currentState == State.SelectedEdge)
+            {
+                _items.secondEdge = _items.edge;
+                SetState(State.SelectingSecondEdge);
+                SetRelation(RelationId.OrthogonalLines);
+                UnSelectShape();
+            }
         }
 
         private void tangencyButton_MouseDown(object sender, MouseEventArgs e)
         {
-
+            switch (_currentState)
+            { 
+                case State.SelectedShape:
+                    {
+                        if (CheckIfCircle(_items.shape))
+                        {
+                            _items.secondShape = _items.shape;
+                            SetState(State.SelectingSecondEdge);
+                            UnSelectShape();
+                        }
+                        SetRelation(RelationId.Tangency);
+                        break;
+                    }
+                case State.SelectedEdge:
+                    {
+                        _items.secondEdge = _items.edge;
+                        SetState(State.SelectingCircle);
+                        SetRelation(RelationId.Tangency);
+                        UnSelectShape();
+                        break;
+                    }
+            }
         }
 
         private void deleteRelationButton_MouseDown(object sender, MouseEventArgs e)
         {
-            if (_selectedShape != null)
+            switch (_currentState)
             {
-                _selectedShape.DeleteRelation();
+                case State.SelectedShape:
+                    {
+                        _items.shape.DeleteRelation();
+                        break;
+                    }
+                case State.SelectedVertice:
+                    {
+                        _items.vertice.DeleteRelation();
+                        break;
+                    }
+                case State.SelectedEdge:
+                    {
+                        _items.edge.DeleteRelation();
+                        break;
+                    }
             }
-            else if (_selectedVertice != null)
-            {
-                _selectedVertice.DeleteRelation();
-            }
-            else if (_selectedEdge != null)
-            {
-                _selectedEdge.DeleteRelation();
-            }
+            SetState();
+            UnSelectShape();
         }
     }
 }

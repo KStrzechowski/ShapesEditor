@@ -11,6 +11,7 @@ namespace ShapesEditor.Data
     public interface IShape
     {
         public void UpdateShape(Vertice vertice);
+        public bool CheckIfCorrect();
         public void Select();
         public void UnSelect();
         public bool CheckIfClicked(Point point);

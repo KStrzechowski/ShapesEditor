@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShapesEditor.Relations;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -10,14 +11,21 @@ namespace ShapesEditor.Data
     public class Polygon : BaseShape
     {
         private readonly List<Vertice> _vertices;
+        private readonly List<(Edge edge, IRelation relation)> _edgeRelations;
         public Polygon()
         {
             _vertices = new List<Vertice>();
+            _edgeRelations = new List<(Edge, IRelation)>();
         }
 
         public override void UpdateShape(Vertice vertice) =>_vertices.Add(vertice);
-
+        public override bool CheckIfCorrect() => _vertices.Count >= 3;
         public void Remove(Vertice vertice) => _vertices.Remove(vertice);
+        public void Remove(Edge edge)
+        {
+            _vertices.Remove(edge._firstVertice);
+            _vertices.Remove(edge._secondVertice);
+        }
 
         public void AddVertice(Vertice firstVertice, Vertice secondVertice)
         {
@@ -113,6 +121,7 @@ namespace ShapesEditor.Data
 
         public override void Draw()
         {
+            ExecuteAllRelations();
             if (_vertices.Count == 0)
                 return;
             var points = _vertices;
@@ -172,6 +181,45 @@ namespace ShapesEditor.Data
                 {
                     return 0;
                 }
+            }
+        }
+
+        public void DeleteRelation(Edge edgeRelation)
+        {
+            foreach (var pair in _edgeRelations)
+            {
+                if (pair.edge.Equals(edgeRelation))
+                {
+                    pair.relation.Remove();
+                    break;
+                }
+            }
+        }
+
+        public void RemoveRelation(Edge edgeRelation)
+        {
+            foreach (var pair in _edgeRelations)
+            {
+                if (pair.edge.Equals(edgeRelation))
+                {
+                    _edgeRelations.Remove(pair);
+                    break;
+                }
+            }
+        }
+
+        public void AddRelation(Edge edgeRelation, IRelation relation)
+        {
+            DeleteRelation(edgeRelation);
+            _edgeRelations.Add((edgeRelation, relation));
+        }
+
+        public void ExecuteAllRelations()
+        {
+            foreach (var pair in _edgeRelations)
+            {
+                pair.relation.Execute();
+                pair.relation.DrawIcon(_graphics);
             }
         }
     }

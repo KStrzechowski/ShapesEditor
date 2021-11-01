@@ -15,7 +15,10 @@ namespace ShapesEditor.Data
         public bool _setRelation { protected get; set; }
         public static Graphics _graphics { get; set; }
         public static Bitmap _bitmap { get; set; }
+        public static int _maxHeigth { get; set; }
+        public static int _maxWidth { get; set; }
         public abstract void UpdateShape(Vertice vertice);
+        public abstract bool CheckIfCorrect();
         public abstract bool CheckIfClicked(Point point);
         public abstract void Draw();
         public abstract void Move(Point startingPoint, Point endingPoint);
@@ -90,7 +93,11 @@ namespace ShapesEditor.Data
                 yFactor = -1;
                 dy = first_point.Y - second_point.Y;
             }
-            _bitmap.SetPixel(x, y, color);
+            // Sprawdzam czy linia nie wychodzi poza bitmapę
+            if (_bitmap.Width > x && x >= 0 && _bitmap.Height > y && y >= 0)
+            {
+                _bitmap.SetPixel(x, y, color);
+            }
 
             // sprawdzamy czy odcinek jest "bardziej" pionowy czy poziomy
             if (dx > dy)
@@ -112,7 +119,10 @@ namespace ShapesEditor.Data
                         d += b;
                         x += xFactor;
                     }
-                    _bitmap.SetPixel(x, y, color);
+                    if (_bitmap.Width > x && x >= 0 && _bitmap.Height > y && y >= 0)
+                    {
+                        _bitmap.SetPixel(x, y, color);
+                    }
                 }
             }
             else
@@ -134,7 +144,10 @@ namespace ShapesEditor.Data
                         d += b;
                         y += yFactor;
                     }
-                    _bitmap.SetPixel(x, y, color);
+                    if (_bitmap.Width > x && x >= 0 && _bitmap.Height > y && y >= 0)
+                    {
+                        _bitmap.SetPixel(x, y, color);
+                    }
                 }
             }
         }

@@ -13,7 +13,6 @@ namespace ShapesEditor.Data
         private Point _position;
         private bool _isSelected;
         private IRelation _relation;
-        private (IRelation previous, IRelation next) _edgeRelations;
         public Vertice(Point point)
         {
             _position = point;
@@ -52,6 +51,10 @@ namespace ShapesEditor.Data
             {
                 graphics.FillEllipse(new SolidBrush(Color.Orange), GetPosition().X - radius, GetPosition().Y - radius, radius * 2, radius * 2);
             }
+            if (_relation != null)
+            {
+                _relation.DrawIcon(graphics);
+            }
         }
 
         public void Move(Point startingPoint, Point endingPoint)
@@ -59,7 +62,7 @@ namespace ShapesEditor.Data
             var position = new Point(endingPoint.X + (GetPosition().X - startingPoint.X),
                 endingPoint.Y + (GetPosition().Y - startingPoint.Y));
             SetPosition(position);
-            ExecuteRelation();
+           // ExecuteRelation();
         }
 
         // Usuwamy całą relację i referencje na nią
@@ -85,25 +88,5 @@ namespace ShapesEditor.Data
             }
             _relation = relation;
         }
-
-        public void ExecuteRelation()
-        {
-            if (_relation != null)
-            {
-                _relation.Execute();
-            }
-            if (_edgeRelations.previous != null)
-            {
-                _edgeRelations.previous.Execute();
-            }
-            if (_edgeRelations.next != null)
-            {
-                _edgeRelations.next.Execute();
-            }
-        }
-
-        public void SetPreviousEdgeRelation(IRelation relation) => _edgeRelations.previous = relation;
-        public void SetNextEdgeRelation(IRelation relation) => _edgeRelations.next = relation;
-
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ShapesEditor.Data;
+using ShapesEditor.Properties;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -21,11 +22,19 @@ namespace ShapesEditor.Relations
             _secondPosition = edge._secondVertice.GetPosition();
             _edgeLength = edge.GetLength();
             _edge.SetRelation(this);
+            Execute();
+        }
+
+        public void DrawIcon(Graphics graphics)
+        {
+            Image img = (Image)(new Bitmap(Resources.line, new Size(20, 20)));
+            graphics.DrawImage(img, (_edge._firstVertice.GetPosition().X + _edge._secondVertice.GetPosition().X) / 2,
+                (_edge._firstVertice.GetPosition().Y + _edge._secondVertice.GetPosition().Y) / 2);
         }
 
         public void Execute()
         {
-            if (_edge.GetLength() != _edgeLength)
+            if (_edge.GetLength() != _edgeLength )
             {
                 if (!_edge._firstVertice.GetPosition().Equals(_firstPosition))
                 {

@@ -19,6 +19,8 @@ namespace ShapesEditor.Data
         }
         public override void UpdateShape(Vertice vertice) => _center = vertice;
 
+        public override bool CheckIfCorrect() => _radius > 0;
+
         public void SetRadius(int radius) => _radius = radius;
         public int GetRadius() => _radius;
         public Point GetCenterPostion() => _center.GetPosition();

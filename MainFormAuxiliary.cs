@@ -1,5 +1,6 @@
 ﻿using ShapesEditor.Data;
 using ShapesEditor.Enums;
+using ShapesEditor.Relations;
 using ShapesEditor.Structures;
 using System;
 using System.Collections.Generic;
@@ -50,6 +51,7 @@ namespace ShapesEditor
 
         private void SetState() => _currentState = State.Default;
         private void SetState(State state) => _currentState = state;
+        private void SetState(ref State currentState, State newState) => currentState = newState;
         private void SetRelation() => _newRelation = RelationId.Default;
         private void SetRelation(RelationId relationId) => _newRelation = relationId;
 
@@ -152,6 +154,10 @@ namespace ShapesEditor
                 {
                     SetState(State.Default);
                 }
+                else
+                {
+                    SetState(ref _stateForRelations, State.Default);
+                }
             }
             DrawAllShapes();
         }
@@ -168,6 +174,10 @@ namespace ShapesEditor
                 {
                     SetState(State.SelectedShape);
                 }
+                else
+                {
+                    SetState(ref _stateForRelations, State.SelectedShape);
+                }
             }
         }
 
@@ -181,6 +191,10 @@ namespace ShapesEditor
                 if (_newRelation == RelationId.Default)
                 {
                     SetState(State.SelectedShape);
+                }
+                else
+                {
+                    SetState(ref _stateForRelations, State.SelectedShape);
                 }
             }
         }
@@ -238,6 +252,7 @@ namespace ShapesEditor
             radiusLabel.Enabled = radiusTextBox.Enabled = true;
             positionXTextBox.Enabled = positionYTextBox.Enabled = positionLabel.Enabled = true;
             lockCircleButton.Enabled = LockLengthButton.Enabled = true;
+            tangencyButton.Enabled = true;
         }
 
         private void SelectedPolygon()
@@ -254,7 +269,7 @@ namespace ShapesEditor
         private void SelectedEdge()
         {
             addButton.Enabled = deleteRelationButton.Enabled = true;
-            equalLengthsButton.Enabled = orthogonalButton.Enabled = tangencyButton.Visible = true;
+            equalLengthsButton.Enabled = orthogonalButton.Enabled = tangencyButton.Enabled = true;
             LockLengthButton.Enabled = true;
         }
 
@@ -330,6 +345,28 @@ namespace ShapesEditor
                     UnSelectShape();
             }
             return false;
+        }
+
+        private void ChooseRelation()
+        {
+            switch (_newRelation)
+            {
+                case RelationId.EqualEdges:
+                    {
+                        new EqualEdges(_items.edge, _items.secondEdge);
+                        break;
+                    }
+                case RelationId.OrthogonalLines:
+                    {
+                        new OrthogonalLines(_items.edge, _items.secondEdge);
+                        break;
+                    }
+                case RelationId.Tangency:
+                    {
+                        new Tangency((Circle)_items.secondShape, _items.secondEdge);
+                        break;
+                    }
+            }
         }
     }
 }

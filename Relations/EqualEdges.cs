@@ -40,26 +40,14 @@ namespace ShapesEditor.Relations
                 var firstPosition = _secondEdge._firstVertice.GetPosition();
                 var secondPosition = _secondEdge._secondVertice.GetPosition();
 
-                // Wyznaczamy wzór prostej na której ułożona jest krawędź którą musimy zmienić.
-                if (secondPosition.X == firstPosition.X)
-                {
-                    if (secondPosition.Y > firstPosition.Y)
-                        secondPosition.Y = firstPosition.Y + (int)_edgeLength;
-                    else
-                        secondPosition.Y = firstPosition.Y - (int)_edgeLength;
-                    _secondEdge._secondVertice.SetPosition(secondPosition);
-                    return;
-                }
-                var a = (secondPosition.Y - firstPosition.Y) / (secondPosition.X - firstPosition.X);
-                var b = firstPosition.Y - a * firstPosition.X;
+                // Wyznaczamy położenie drugiego punktu korzystając z wektorów.
+                // weźmy v = (x1, y1) - (x0, y0) oraz u = v / ||v||.
+                // Wtedy szukany punkt będzie znajdował się w położeniu (x0, y0) + du, gdzie d to odległość między punktami.
+                (double X, double Y) v = (secondPosition.X - firstPosition.X, secondPosition.Y - firstPosition.Y);
+                (double X, double Y) u = (v.X / Math.Sqrt((v.X * v.X) + (v.Y * v.Y)), v.Y / Math.Sqrt((v.X * v.X) + (v.Y * v.Y)));
 
-                // Wyznaczamy nowe współrzędne dla drugiego wierzchołka krawędzi.
-                if (firstPosition.X < secondPosition.X)
-                    secondPosition.X = (int)(firstPosition.X + _edgeLength / (Math.Sqrt(1 + a * a)));
-                else
-                    secondPosition.X = (int)(firstPosition.X - _edgeLength / (Math.Sqrt(1 + a * a)));
-                secondPosition.Y = a * secondPosition.X + b;
-                _secondEdge._secondVertice.SetPosition(secondPosition);
+                var result = new Point(firstPosition.X + (int)(_edgeLength * u.X), firstPosition.Y + (int)(_edgeLength * u.Y));
+                _secondEdge._secondVertice.SetPosition(result);
             }
             else if (_secondEdge.GetLength() != _edgeLength)
             {
@@ -67,26 +55,11 @@ namespace ShapesEditor.Relations
                 var firstPosition = _firstEdge._firstVertice.GetPosition();
                 var secondPosition = _firstEdge._secondVertice.GetPosition();
 
-                // Wyznaczamy wzór prostej na której ułożona jest krawędź którą musimy zmienić.
-                if (secondPosition.X == firstPosition.X)
-                {
-                    if (secondPosition.Y > firstPosition.Y)
-                        secondPosition.Y = firstPosition.Y + (int)_edgeLength;
-                    else
-                        secondPosition.Y = firstPosition.Y - (int)_edgeLength;
-                    _secondEdge._secondVertice.SetPosition(secondPosition);
-                    return;
-                }
-                var a = (secondPosition.Y - firstPosition.Y) / (secondPosition.X - firstPosition.X);
-                var b = firstPosition.Y - a * firstPosition.X;
+                (double X, double Y) v = (secondPosition.X - firstPosition.X, secondPosition.Y - firstPosition.Y);
+                (double X, double Y) u = (v.X / Math.Sqrt((v.X * v.X) + (v.Y * v.Y)), v.Y / Math.Sqrt((v.X * v.X) + (v.Y * v.Y)));
 
-                // Wyznaczamy nowe współrzędne dla drugiego wierzchołka krawędzi.
-                if (firstPosition.X < secondPosition.X)
-                    secondPosition.X = (int)(firstPosition.X + _edgeLength / (Math.Sqrt(1 + a * a)));
-                else
-                    secondPosition.X = (int)(firstPosition.X - _edgeLength / (Math.Sqrt(1 + a * a)));
-                secondPosition.Y = a * secondPosition.X + b;
-                _firstEdge._secondVertice.SetPosition(secondPosition);
+                var result = new Point(firstPosition.X + (int)(_edgeLength * u.X), firstPosition.Y + (int)(_edgeLength * u.Y));
+                _firstEdge._secondVertice.SetPosition(result);
             }
         }
 

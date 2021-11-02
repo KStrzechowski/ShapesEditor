@@ -93,7 +93,11 @@ namespace ShapesEditor
                         SelectShape(_position);
                         if (_items.shape != null && CheckIfCircle(_items.shape))
                         {
-                            new Tangency((Circle)_items.shape, _items.secondEdge);
+                            if (_items.secondShape == null)
+                            {
+                                _items.secondShape = _items.shape;
+                            }
+                            ChooseRelation();
                             SetAllDefault();
                         }
                         break;
@@ -117,7 +121,6 @@ namespace ShapesEditor
                                 }
                             case State.SelectedShape:
                                 {
-
                                     if (CheckIfVertice(out Vertice clickedVertice))
                                     {
                                         SelectVertice(clickedVertice);
@@ -136,26 +139,11 @@ namespace ShapesEditor
                                             UnSelectShape();
                                             break;
                                         }
-
-                                        switch (_newRelation)
+                                        if (_items.secondEdge == null)
                                         {
-                                            case RelationId.EqualEdges:
-                                                {
-                                                    new EqualEdges(_items.edge, _items.secondEdge);
-                                                    break;
-                                                }
-                                            case RelationId.OrthogonalLines:
-                                                {
-                                                    new OrthogonalLines(_items.edge, _items.secondEdge);
-                                                    break;
-                                                }
-                                            case RelationId.Tangency:
-                                                {
-                                                    new Tangency((Circle)_items.secondShape, _items.edge);
-                                                    break;
-                                                }
+                                            _items.secondEdge = _items.edge;
                                         }
-
+                                        ChooseRelation();
                                         SetAllDefault();
                                     }
                                     break;
@@ -286,10 +274,6 @@ namespace ShapesEditor
             UnSelectShape();
         }
 
-        private void textBox_NumberValidation(object sender, CancelEventArgs e)
-        {
-        }
-
         private void positionTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -397,9 +381,9 @@ namespace ShapesEditor
                         {
                             _items.secondShape = _items.shape;
                             SetState(State.SelectingSecondEdge);
+                            SetRelation(RelationId.Tangency);
                             UnSelectShape();
                         }
-                        SetRelation(RelationId.Tangency);
                         break;
                     }
                 case State.SelectedEdge:

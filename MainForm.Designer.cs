@@ -180,7 +180,6 @@ namespace ShapesEditor
             this.positionYTextBox.TabIndex = 9;
             this.positionYTextBox.Text = "0";
             this.positionYTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.positionTextBox_KeyDown);
-            this.positionYTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.textBox_NumberValidation);
             // 
             // positionXTextBox
             // 
@@ -194,7 +193,6 @@ namespace ShapesEditor
             this.positionXTextBox.TabIndex = 8;
             this.positionXTextBox.Text = "0";
             this.positionXTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.positionTextBox_KeyDown);
-            this.positionXTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.textBox_NumberValidation);
             // 
             // radiusTextBox
             // 
@@ -210,7 +208,6 @@ namespace ShapesEditor
             this.radiusTextBox.TabIndex = 6;
             this.radiusTextBox.Text = "50";
             this.radiusTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.radiusTextBox_KeyDown);
-            this.radiusTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.textBox_NumberValidation);
             // 
             // deleteButton
             // 

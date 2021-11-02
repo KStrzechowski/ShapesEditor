@@ -13,13 +13,12 @@ namespace ShapesEditor.Relations
     {
         private Edge _firstEdge;
         private Edge _secondEdge;
-        private int _a;
+        private int _directionFactor;
         public OrthogonalLines(Edge firstEdge, Edge secondEdge)
         {
             _firstEdge = firstEdge;
             _secondEdge = secondEdge;
-            _a = (_firstEdge._secondVertice.GetPosition().Y - _firstEdge._firstVertice.GetPosition().Y) 
-                / (_firstEdge._secondVertice.GetPosition().X - _firstEdge._firstVertice.GetPosition().X);
+            _directionFactor = calculateDirectionFactor(firstEdge);
             _firstEdge.SetRelation(this);
             _secondEdge.SetRelation(this);
             Execute();
@@ -34,110 +33,60 @@ namespace ShapesEditor.Relations
                 (_secondEdge._firstVertice.GetPosition().Y + _secondEdge._secondVertice.GetPosition().Y) / 2);
         }
 
+        public int calculateDirectionFactor(Edge edge)
+        {
+            if (edge._secondVertice.GetPosition().X == edge._firstVertice.GetPosition().X)
+                return 0;
+            return (edge._secondVertice.GetPosition().Y - edge._firstVertice.GetPosition().Y)
+                / (edge._secondVertice.GetPosition().X - edge._firstVertice.GetPosition().X);
+        }
+
         public void Execute()
         {
-            // Niestety nie udało się, algorytm nie działa poprawnie.
-            
-            /*if (_firstEdge._firstVertice.GetPosition().X == _firstEdge._secondVertice.GetPosition().X)
+            if (_directionFactor != calculateDirectionFactor(_firstEdge))
             {
-                if (_secondEdge._firstVertice.GetPosition().Y != _secondEdge._secondVertice.GetPosition().Y)
-                {
-                    var firstPosition = _secondEdge._firstVertice.GetPosition();
-                    var secondPosition = _secondEdge._secondVertice.GetPosition();
-                    var edgeLength = (int)_secondEdge.GetLength();
-
-                    if (firstPosition.Y > secondPosition.Y)
-                    {
-                        secondPosition.Y = firstPosition.Y - edgeLength;
-                    }
-                    else
-                    {
-                        secondPosition.Y = firstPosition.Y + edgeLength;
-                    }
-                    secondPosition.X = firstPosition.X;
-                    _secondEdge._secondVertice.SetPosition(secondPosition);
-                }
-            }
-            else if (_secondEdge._firstVertice.GetPosition().X == _secondEdge._secondVertice.GetPosition().X)
-            {
-                if (_firstEdge._firstVertice.GetPosition().Y != _firstEdge._secondVertice.GetPosition().Y)
-                {
-                    var firstPosition = _firstEdge._firstVertice.GetPosition();
-                    var secondPosition = _firstEdge._secondVertice.GetPosition();
-                    var edgeLength = (int)_firstEdge.GetLength();
-
-                    if (firstPosition.Y > secondPosition.Y)
-                    {
-                        secondPosition.Y = firstPosition.Y - edgeLength;
-                    }
-                    else
-                    {
-                        secondPosition.Y = firstPosition.Y + edgeLength;
-                    }
-                    secondPosition.X = firstPosition.X;
-                    _firstEdge._secondVertice.SetPosition(secondPosition);
-                }
-            }
-            else if (_firstEdge._firstVertice.GetPosition().Y == _firstEdge._secondVertice.GetPosition().Y)
-            {
-                if (_secondEdge._firstVertice.GetPosition().X != _secondEdge._secondVertice.GetPosition().X)
-                {
-
-                }
-            }
-            else if (_secondEdge._firstVertice.GetPosition().Y == _secondEdge._secondVertice.GetPosition().Y)
-            {
-                if (_firstEdge._firstVertice.GetPosition().X != _firstEdge._secondVertice.GetPosition().X)
-                {
-
-                }
-            }
-            else
-            {
+                _directionFactor = calculateDirectionFactor(_firstEdge);
+                var edgeLength = _secondEdge.GetLength();
                 var firstPosition = _firstEdge._firstVertice.GetPosition();
                 var secondPosition = _firstEdge._secondVertice.GetPosition();
-                var a = (secondPosition.Y - firstPosition.Y) / (secondPosition.X - firstPosition.X);
-                if (_a != a)
-                {
-                    var b = firstPosition.Y - a * firstPosition.X;
-                    a = -1 / a;
 
-                    firstPosition = _secondEdge._firstVertice.GetPosition();
-                    var _edgeLength = _secondEdge.GetLength();
-                    if (firstPosition.X < secondPosition.X)
-                        secondPosition.X = (int)(firstPosition.X + _edgeLength / (Math.Sqrt(1 + a * a)));
-                    else
-                        secondPosition.X = (int)(firstPosition.X - _edgeLength / (Math.Sqrt(1 + a * a)));
-                    secondPosition.Y = a * secondPosition.X + b;
-                    _secondEdge._secondVertice.SetPosition(secondPosition);
-                    _a = - 1 / a;
-                    return;
-                }
+                // Korzystając z wektorów wyznaczamy współczynnik kierunkowy, 
+                // weźmy v = (x1, y1) - (x0, y0) oraz u = v / ||v||.
+                (double X, double Y) v = (secondPosition.X - firstPosition.X, secondPosition.Y - firstPosition.Y);
+                (double X, double Y) u = (v.X / Math.Sqrt((v.X * v.X) + (v.Y * v.Y)), v.Y / Math.Sqrt((v.X * v.X) + (v.Y * v.Y)));
 
+                // Wyznaczamy współczynnik kierunkowy prostopadły.
+                u = (-u.Y, u.X);
 
-                firstPosition = _secondEdge._firstVertice.GetPosition();
-                secondPosition = _secondEdge._secondVertice.GetPosition();
-                a = (secondPosition.Y - firstPosition.Y) / (secondPosition.X - firstPosition.X);
-                a = -1 / a;
-                if (_a != a)
-                {
-                    var b = firstPosition.Y - a * firstPosition.X;
+                // Wyznaczamy położenie szukanego punktu.
+                // Punkt będzie znajdował się w położeniu(x0, y0) +du, gdzie d to odległość między punktami.
+                var result = new Point(_secondEdge._firstVertice.GetPosition().X + (int)(edgeLength * u.X), 
+                    _secondEdge._firstVertice.GetPosition().Y + (int)(edgeLength * u.Y));
 
-                    firstPosition = _firstEdge._firstVertice.GetPosition();
-                    var _edgeLength = _firstEdge.GetLength();
-                    if (firstPosition.X < secondPosition.X)
-                        secondPosition.X = (int)(firstPosition.X + _edgeLength / (Math.Sqrt(1 + a * a)));
-                    else
-                        secondPosition.X = (int)(firstPosition.X - _edgeLength / (Math.Sqrt(1 + a * a)));
-                    secondPosition.Y = a * secondPosition.X + b;
-                    _firstEdge._secondVertice.SetPosition(secondPosition);
-                    _a = - 1 / a;
-                    return;
-                }
-            }*/
+                _secondEdge._secondVertice.SetPosition(result);
+            }
+            else if (calculateDirectionFactor(_secondEdge) == 0 || _directionFactor != (1 / calculateDirectionFactor(_secondEdge)))
+            {
+                _directionFactor = calculateDirectionFactor(_secondEdge);
+                var edgeLength = _firstEdge.GetLength();
+                var firstPosition = _secondEdge._firstVertice.GetPosition();
+                var secondPosition = _secondEdge._secondVertice.GetPosition();
 
+                // Korzystając z wektorów wyznaczamy współczynnik kierunkowy, 
+                // weźmy v = (x1, y1) - (x0, y0) oraz u = v / ||v||.
+                (double X, double Y) v = (secondPosition.X - firstPosition.X, secondPosition.Y - firstPosition.Y);
+                (double X, double Y) u = (v.X / Math.Sqrt((v.X * v.X) + (v.Y * v.Y)), v.Y / Math.Sqrt((v.X * v.X) + (v.Y * v.Y)));
 
+                // Wyznaczamy współczynnik kierunkowy prostopadły.
+                u = (-u.Y, u.X);
 
+                // Wyznaczamy położenie szukanego punktu.
+                // Punkt będzie znajdował się w położeniu(x0, y0) +du, gdzie d to odległość między punktami.
+                var result = new Point(_firstEdge._firstVertice.GetPosition().X + (int)(edgeLength * u.X),
+                    _firstEdge._firstVertice.GetPosition().Y + (int)(edgeLength * u.Y));
+
+                _firstEdge._secondVertice.SetPosition(result);
+            }
         }
 
         public void Remove()

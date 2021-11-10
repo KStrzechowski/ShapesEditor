@@ -47,10 +47,64 @@ namespace ShapesEditor.Data
             if (isSelected)
                 color = Color.Blue;
             else
-                color = Color.Black;
+                color = Color.DarkGray;
 
-            _graphics.DrawEllipse(new Pen(color), center.X - radius, center.Y - radius, (radius * 2), (radius * 2));
+            DrawArch(radius, color);
             _center.Draw(_graphics);
+        }
+
+        public void DrawArch(int r, Color color)
+        {
+            Point center = GetCenterPostion();
+            int y = 0;
+            int x = r;
+            double d = 0;
+            if (center.X + x > 0 && _bitmap.Width > center.X + x && center.Y> 0 && _bitmap.Height > center.Y)
+            {
+                _bitmap.SetPixel(center.X + x, center.Y, color);
+                _bitmap.SetPixel(center.X + x - 1, center.Y + y, color);
+            }
+            if (center.X - x > 0 && _bitmap.Width > center.X - x && center.Y > 0 && _bitmap.Height > center.Y)
+            {
+                _bitmap.SetPixel(center.X - x, center.Y, color);
+                _bitmap.SetPixel(center.X - x - 1, center.Y + y, color);
+            }
+
+            while (x > y)
+            {
+                y++;
+                if (Distance(r, y) < d) x--;
+                Color color1 = Color.FromArgb(color.A, (int)(color.R * (1 - Distance(r, y))),
+                    (int)(color.G * (1 - Distance(r, y))), (int)(color.B * (1 - Distance(r, y))));
+                Color color2 = Color.FromArgb(color.A, (int)(color.R * Distance(r, y)),
+                    (int)(color.G * Distance(r, y)), (int)(color.B * Distance(r, y)));
+                DrawPixels(center, x, y, color1, color2, r);
+                DrawPixels(center, -x, y, color1, color2, r);
+                DrawPixels(center, x, -y, color1, color2, r);
+                DrawPixels(center, -x, -y, color1, color2, r);
+                DrawPixels(center, y, x, color1, color2, r);
+                DrawPixels(center, -y, x, color1, color2, r);
+                DrawPixels(center, y, -x, color1, color2, r);
+                DrawPixels(center, -y, -x, color1, color2, r);
+
+                d = Distance(r, y);
+            }
+        }
+
+        public void DrawPixels(Point center, int x, int y, Color color1 , Color color2, int r)
+        {
+            if (center.X + x > 0 && _bitmap.Width > center.X + x && center.Y + y > 1 && _bitmap.Height > center.Y + y)
+            {
+                _bitmap.SetPixel(center.X + x, center.Y + y, color1);
+                _bitmap.SetPixel(center.X + x - 1, center.Y + y, color2);
+                _bitmap.SetPixel(center.X + x, center.Y + y - 1, color2);
+            }
+        }
+
+        public double Distance(int r, int y)
+        {
+            double x = Math.Sqrt(r * r - y * y);
+            return Math.Ceiling(x) - x;
         }
 
         public override void Move(Point startingPoint, Point endingPoint)
